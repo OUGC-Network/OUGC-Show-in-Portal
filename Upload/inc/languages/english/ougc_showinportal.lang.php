@@ -2,17 +2,17 @@
 
 /***************************************************************************
  *
- *   OUGC Show in Portal plugin
+ *   OUGC Show in Portal plugin (/inc/languages/english/ougc_showinportal.php)
  *	 Author: Omar Gonzalez
- *   Copyright: © 2012 Omar Gonzalez
+ *   Copyright: Â© 2012 Omar Gonzalez
  *   
- *   Website: http://www.udezain.com.ar
+ *   Website: http://community.mybb.com/user-25096.html
  *
  *   Choose what threads to show in portal while creating / editing.
  *
- ***************************************************************************/
+ ***************************************************************************
  
-/****************************************************************************
+****************************************************************************
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -28,26 +28,26 @@
 ****************************************************************************/
 
 // Plugin information.
-$l['ougc_showinportal'] = "OUGC Show in Portal";
+$l['ougc_showinportal'] = 'OUGC Show in Portal';
 
 // Option text
-$l['ougc_showinportal_newthread'] = "<b>Portal Thread:</b> show this thread in the front portal.";
+$l['ougc_showinportal_newthread'] = '<b>Portal Thread:</b> show this thread in the front portal.';
 
 // MyCode lang
-$l['ougc_showinportal_mycode'] = "
+$l['ougc_showinportal_readmore'] = '
 
-Read More: {1}/{2}";
-$l['ougc_showinportal_mycode_html'] = "
+Read More: {1}/{2}';
+$l['ougc_showinportal_readmore_html'] = '
 
-<a href=\"{1}/{2}\" title=\"Read Full Thread\">Read More...</a>";
-$l['ougc_showinportal_mycode_mycode'] = "
+<a href=\"{1}/{2}\" title=\"Read Full Thread\">Read More...</a>';
+$l['ougc_showinportal_readmore_mycode'] = '
 
-[url={1}/{2}]Read More...[/url]";
+[url={1}/{2}]Read More...[/url]';
 
 // Inline moderation
-$l['ougc_showinportal_mycode_showinportal'] = "Portal Threads: Add";
-$l['ougc_showinportal_mycode_unshowinportal'] = "Portal Threads: Remove";
-$l['ougc_showinportal_mycode_showinportal_done'] = "Threads Added to Portal";
-$l['ougc_showinportal_mycode_unshowinportal_done'] = "Threads Removed from Portal";
-$l['ougc_showinportal_mycode_showinportal_redirect'] = "The selected threads have been added to the portal.<br />You will now be returned to your previous location.";
-$l['ougc_showinportal_mycode_unshowinportal_redirect'] = "The selected threads have been removed from portal.<br />You will now be returned to your previous location.";
+$l['ougc_showinportal_mycode_showinportal'] = 'Portal Threads: Add';
+$l['ougc_showinportal_mycode_unshowinportal'] = 'Portal Threads: Remove';
+$l['ougc_showinportal_mycode_showinportal_done'] = 'Threads Added to Portal';
+$l['ougc_showinportal_mycode_unshowinportal_done'] = 'Threads Removed from Portal';
+$l['ougc_showinportal_mycode_showinportal_redirect'] = 'The selected threads have been added to the portal.<br />You will now be returned to your previous location.';
+$l['ougc_showinportal_mycode_unshowinportal_redirect'] = 'The selected threads have been removed from portal.<br />You will now be returned to your previous location.';

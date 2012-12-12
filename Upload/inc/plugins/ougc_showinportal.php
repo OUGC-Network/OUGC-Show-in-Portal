@@ -2,17 +2,17 @@
 
 /***************************************************************************
  *
- *   OUGC Show in Portal plugin
+ *   OUGC Show in Portal plugin (/inc/plugins/ougc_showinportal.php)
  *	 Author: Omar Gonzalez
- *   Copyright: � 2012 Omar Gonzalez
+ *   Copyright: © 2012 Omar Gonzalez
  *   
- *   Website: http://www.udezain.com.ar
+ *   Website: http://community.mybb.com/user-25096.html
  *
  *   Choose what threads to show in portal while creating / editing.
  *
- ***************************************************************************/
+ ***************************************************************************
  
-/****************************************************************************
+****************************************************************************
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -33,115 +33,108 @@ defined('IN_MYBB') or die('This file cannot be accessed directly.');
 // Run the ACP hooks.
 if(!defined('IN_ADMINCP'))
 {
-	define('SHOWINPORTAL_MYCODE_STRIGN', '[!--more--]');
 	$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
 	$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
 	$plugins->add_hook('editpost_end', 'ougc_showinportal_editpost');
 	$plugins->add_hook('newthread_start', 'ougc_showinportal_newthread');
 	$plugins->add_hook('moderation_start', 'ougc_showinportal_moderation');
 	$plugins->add_hook('forumdisplay_start', 'ougc_showinportal_forumdisplay');
-	$plugins->add_hook('portal_announcement', 'ougc_showinportal_portal_announcement');
-	$plugins->add_hook('datahandler_post_update_thread', 'ougc_showinportal_do_editpost');
-	$plugins->add_hook('datahandler_post_insert_thread', 'ougc_showinportal_do_newthread');
+	$plugins->add_hook('datahandler_post_update_thread', 'ougc_showinportal_update_thread');
+	$plugins->add_hook('datahandler_post_insert_thread', 'ougc_showinportal_insert_thread');
+
 	if(in_array(THIS_SCRIPT, array('forumdisplay.php', 'newthread.php', 'editpost.php')))
 	{
 		global $templatelist;
 
 		if(isset($templatelist))
+		{
 			$templatelist .= ', ';
+		}
+		else
+		{
+			$templatelist = '';
+		}
 
 		if(THIS_SCRIPT == 'forumdisplay.php')
-			$templatelist .= 'ougc_showinportal_inlinemoderation';
-		elseif(THIS_SCRIPT == 'newthread.php')
-			$templatelist .= 'ougc_showinportal_newthread';
+		{
+			$templatelist .= 'ougcshowinportal_inlinemod';
+		}
 		else
-			$templatelist .= 'ougc_showinportal_editpost';
+		{
+			$templatelist .= 'ougcshowinportal_input';
+		}
+	}
+
+	global $settings;
+
+	// All right, so what if fid = -1? Lest make that equal to all forums ¬_¬
+	if($settings['portal_announcementsfid'] == '-1')
+	{
+		$forums = cache_forums();
+		$fids = array(0);
+		foreach($forums as $forum)
+		{
+			if($forum['type'] == 'f' && $forum['active'] == 1 && $forum['open'] == 1)
+			{
+				$fids[] = (int)$forum['fid'];
+			}
+		}
+		$settings['portal_announcementsfid'] = implode(',', array_unique($fids));
 	}
 }
+
+// PLUGINLIBRARY
+defined('PLUGINLIBRARY') or define('PLUGINLIBRARY', MYBB_ROOT.'inc/plugins/pluginlibrary.php');
 
 // Necessary plugin information for the ACP plugin manager.
 function ougc_showinportal_info()
 {
 	global $lang;
-	$lang->load('ougc_showinportal');
+	isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
 
 	return array(
 		'name'			=> 'OUGC Show in Portal',
 		'description'	=> $lang->ougc_showinportal_d,
-		'website'		=> 'http://udezain.com.ar/',
-		'author'		=> 'Omar G.',
-		'authorsite'	=> 'http://udezain.com.ar/',
-		'version'		=> '1.0',
+		'website'		=> 'http://mods.mybb.com/view/ougc-mark-pm-as-unread',
+		'author'		=> 'Omar Gonzalez',
+		'authorsite'	=> 'http://community.mybb.com/user-25096.html',
+		'version'		=> '1.1',
 		'compatibility'	=> '16*',
-		'guid'			=> ''
+		'guid'			=> '',
+		'pl_version'	=> 11,
+		'pl_url'		=> 'http://mods.mybb.com/view/pluginlibrary'
 	);
 }
 
 // Activate the plugin
 function ougc_showinportal_activate()
 {
-	global $db, $lang;
-    $lang->load('ougc_showinportal');
-	ougc_showinportal_deactivate(false);
+	global $PL, $lang;
+	isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
+	ougc_showinportal_reqpl();
 
-	$query = $db->simple_select('settinggroups', 'COUNT(*) AS settinggroups');
-	$disporder = $db->fetch_field($query, 'settinggroups');
+	// Add our settings
+	$PL->settings('ougc_showinportal', $lang->ougc_showinportal, $lang->ougc_showinportal_d, array(
+		'groups'	=> array(
+		   'title'			=> $lang->ougc_showinportal_groups,
+		   'description'	=> $lang->ougc_showinportal_groups_d,
+		   'optionscode'	=> 'text',
+			'value'			=>	'3,4,6',
+		),
+		'tag'	=> array(
+		   'title'			=> $lang->ougc_showinportal_tag,
+		   'description'	=> $lang->ougc_showinportal_tag_d,
+		   'optionscode'	=> 'text',
+			'value'			=>	'[!--more--]',
+		)
+	));
 
-	// Insert our settings
-	$gid = $db->insert_query('settinggroups',array(
-		'name'			=> 'ougc_showinportal',
-		'title'			=> $db->escape_string($lang->ougc_showinportal_s),
-		'description'	=> $db->escape_string($lang->ougc_showinportal_d),
-		'disporder'		=> ++$disporder,
-		'isdefault'		=> 'no'
-	));
-	$db->insert_query('settings',array(
-		'name'			=> 'ougc_showinportal_power',
-		'title'			=> $db->escape_string($lang->ougc_showinportal_power),
-		'description'	=> $db->escape_string($lang->ougc_showinportal_power_d),
-		'optionscode'	=> 'onoff',
-		'value'			=> 1,
-		'disporder'		=> 1,
-		'gid'			=> intval($gid)
-	));
-	$db->insert_query('settings',array(
-		'name'			=> 'ougc_showinportal_groups',
-		'title'			=> $db->escape_string($lang->ougc_showinportal_groups),
-		'description'	=> $db->escape_string($lang->ougc_showinportal_groups_d),
-		'optionscode'	=> 'text',
-		'value'			=> '3,4,6',
-		'disporder'		=> 2,
-		'gid'			=> intval($gid)
-	));
-	$db->insert_query('settings',array(
-		'name'			=> 'ougc_showinportal_short',
-		'title'			=> $db->escape_string($lang->ougc_showinportal_short),
-		'description'	=> $db->escape_string($lang->ougc_showinportal_short_d),
-		'optionscode'	=> 'yesno',
-		'value'			=> 1,
-		'disporder'		=> 3,
-		'gid'			=> intval($gid)
-	));
-	rebuild_settings();
-
-	// Inser our templates
-	$db->insert_query('templates', array(
-		'title'		=>	'ougc_showinportal_newthread',
-		'template'	=>	$db->escape_string('<br />
-<label><input type="checkbox" class="checkbox" name="modoptions[showinportal]" value="1"{$showinportalcheck} />&nbsp;{$lang->ougc_showinportal_newthread}</label>'),
-		'sid'		=>	-1,
-	));
-	$db->insert_query('templates', array(
-		'title'		=>	'ougc_showinportal_editpost',
-		'template'	=>	$db->escape_string('<br />
-<label><input type="checkbox" class="checkbox" name="showinportal" value="1"{$showinportalcheck} />&nbsp;{$lang->ougc_showinportal_newthread}</label>'),
-		'sid'		=>	-1,
-	));
-	$db->insert_query('templates', array(
-		'title'		=>	'ougc_showinportal_inlinemoderation',
-		'template'	=>	$db->escape_string('<option value="multishowinportal">{$lang->ougc_showinportal_mycode_showinportal}</option>
-<option value="multiunshowinportal">{$lang->ougc_showinportal_mycode_unshowinportal}</option>'),
-		'sid'		=>	-1,
+	// Insert template/group
+	$PL->templates('ougcshowinportal', $lang->ougc_showinportal, array(
+		'input'	=> '<br />
+<label><input type="checkbox" class="checkbox" name="{$name}" value="1"{$checked} />&nbsp;{$lang->ougc_showinportal_newthread}</label>',
+		'inlinemod'	=> '<option value="multishowinportal">{$lang->ougc_showinportal_mycode_showinportal}</option>
+<option value="multiunshowinportal">{$lang->ougc_showinportal_mycode_unshowinportal}</option>'
 	));
 
 	// Add our variables
@@ -154,20 +147,7 @@ function ougc_showinportal_activate()
 //Deactivate the plugin.
 function ougc_showinportal_deactivate($rebuilt=true)
 {
-	global $db;
-	$gid = $db->fetch_field($db->simple_select('settinggroups', 'gid', "name='ougc_showinportal'"), 'gid');
-	if($gid)
-	{
-		$db->delete_query("settings", "gid='{$gid}'");
-		$db->delete_query("settinggroups", "gid='{$gid}'");
-		if($rebuilt == true)
-		{
-			rebuild_settings();
-		}
-	}
-
-	// Delete our templates
-	$db->delete_query('templates', "title IN('ougc_showinportal_newthread', 'ougc_showinportal_editpost', 'ougc_showinportal_inlinemoderation')");
+	ougc_showinportal_reqpl();
 
 	// Remove our variables
 	require_once MYBB_ROOT.'/inc/adminfunctions_templates.php';
@@ -179,11 +159,11 @@ function ougc_showinportal_deactivate($rebuilt=true)
 // Install the plugin.
 function ougc_showinportal_install()
 {
-	global $db, $cache, $settings;
-	ougc_showinportal_uninstall();
+	global $db;
+	ougc_showinportal_reqpl();
 
 	// Insert our two columns
-	$db->add_column('threads', 'showinportal', "int(1) NOT NULL DEFAULT '0'");
+	$db->field_exists('showinportal', 'threads') or $db->add_column('threads', 'showinportal', "int(1) NOT NULL DEFAULT '0'");
 }
 
 // Is this plugin installed?
@@ -197,7 +177,14 @@ function ougc_showinportal_is_installed()
 // Uninstall the plugin.
 function ougc_showinportal_uninstall()
 {
-	global $db, $cache;
+	global $db, $PL;
+	ougc_showinportal_reqpl();
+
+	// Delete our settings
+	$PL->settings_delete('ougc_showinportal');
+
+	// Delete our templates
+	$PL->templates_delete('ougcshowinportal');
 
 	// Drop our columns
 	if($db->field_exists('showinportal', 'threads'))
@@ -209,109 +196,102 @@ function ougc_showinportal_uninstall()
 // Remove MyCode from posts
 function ougc_showinportal_postbit(&$post)
 {
-	global $thread;
+	global $thread, $settings, $plugins;
+	$plugins->remove_hook('postbit', 'ougc_showinportal_postbit'); // we just need this to run once
 
-	// Return
-	if(!ougc_showinportal_check_perm($thread['fid'], $thread['firstpost'], $post['pid'], true))
+	// Check if first post
+	// Check MyCode option
+	// Check if thread is to be shown in portal
+	// Check forum id
+	if($post['pid'] == $thread['firstpost'] && !empty($settings['ougc_showinportal_tag']) && (bool)$thread['showinportal'] && in_array($thread['fid'], array_unique((array_map('intval', (explode(',', $settings['portal_announcementsfid'])))))))
 	{
-		return false;
-	}
-
-	// Remove MyCode only if post is suppose to be show in portal
-	if($thread['showinportal'] == 1)
-	{
-		$post['message'] = preg_replace("#\\".SHOWINPORTAL_MYCODE_STRIGN."#", '', $post['message']);
+		$post['message'] = preg_replace('#'.preg_quote($settings['ougc_showinportal_tag']).'#', '', $post['message']);
 	}
 }
 
 // Alter portal behavior
 function ougc_showinportal_portal()
 {
-	global $mybb;
+	global $settings;
 
-	// Deactivated
-	if($mybb->settings['ougc_showinportal_power'] != 1)
-	{
-		return false;
-	}
-
-	control_object($GLOBALS['db'], '
-		function query($string, $hide_errors=0, $write_query=0) {
-			static $done=false;
-			if(!$done && !$write_query && strpos($string, \'ORDER BY t.dateline DESC\')) {
-				$done = true;
+	ougc_showinportal_control_object($GLOBALS['db'], '
+		function query($string, $hide_errors=0, $write_query=0)
+		{
+			if(!$write_query && strpos($string, \'ORDER BY t.dateline DESC\'))
+			{
 				$string = strtr($string, array(
-					\'t.closed\' => \'t.showinportal=1 AND t.closed\'
+					\'t.closed\' => \'t.showinportal=\\\'1\\\' AND t.closed\'
 				));
 			}
 			return parent::query($string, $hide_errors, $write_query);
 		}
 	');
 
+	// Replace MyCode with a "Read More..." kind of link
+	if(!empty($settings['ougc_showinportal_tag']))
+	{
+		global $plugins;
+		$plugins->add_hook('portal_announcement', create_function('', 'global $announcement;	ougc_showinportal_readmore($announcement[\'message\'], $announcement[\'fid\'], $announcement[\'tid\']);'));
+	}
 }
 
 // Insert variable whle editing
 function ougc_showinportal_editpost()
 {
-	global $mybb, $thread, $pid;
+	global $mybb, $thread, $pid, $ougc_showinportal;
+	$ougc_showinportal = '';
 
-	// Return
-	if(!ougc_showinportal_check_perm($thread['fid'], $thread['firstpost'], $pid))
+	// Post is first post of a thread?
+	if(is_moderator($fid) && ougc_showinportal_check_groups($mybb->settings['ougc_showinportal_groups']) && $pid == $thread['firstpost'] && in_array($thread['fid'], array_unique((array_map('intval', (explode(',', $mybb->settings['portal_announcementsfid'])))))))
 	{
-		return false;
-	}
+		global $ougc_showinportal, $templates, $lang;
+		isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
 
-	global $ougc_showinportal, $templates, $lang;
-	$lang->load('ougc_showinportal');
+		// Figure out if checked
+		$checked = '';
+		if($thread['showinportal'] == 1 && !isset($mybb->input['processed']))
+		{
+			$checked = ' checked="checked"';
+		}
+		elseif($mybb->input['showinportal'] == 1)
+		{
+			$checked = ' checked="checked"';
+		}
 
-	// Figure out if checked
-	$showinportalcheck = '';
-	if($thread['showinportal'] == 1 && !isset($mybb->input['processed']))
-	{
-		$showinportalcheck = ' checked="checked"';
+		// Show the option
+		$name = 'showinportal';
+		eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
 	}
-	elseif($mybb->input['showinportal'] == 1)
-	{
-		$showinportalcheck = ' checked="checked"';
-	}
-
-	// Show the option
-	eval('$ougc_showinportal = "'.$templates->get('ougc_showinportal_editpost').'";');
 }
 
 // Insert variable while trying to create a new thread
 function ougc_showinportal_newthread()
 {
-	global $mybb, $fid;
+	global $settings, $fid, $ougc_showinportal;
 
-	// Return
-	if(!ougc_showinportal_check_perm($fid))
+	$ougc_showinportal = '';
+	if(is_moderator($fid) && ougc_showinportal_check_groups($settings['ougc_showinportal_groups']) && in_array($fid, array_unique((array_map('intval', (explode(',', $settings['portal_announcementsfid'])))))))
 	{
-		return false;
-	}
+		global $templates, $lang;
+		isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
 
-	global $ougc_showinportal, $templates, $lang;
-	$lang->load('ougc_showinportal');
-
-	// Figure out if checked
-	$showinportalcheck = '';
-	if(is_array($mybb->input['modoptions']))
-	{
-		if(isset($mybb->input['modoptions']['showinportal']) && $mybb->input['modoptions']['showinportal'] == 1)
+		// Figure out if checked
+		$checked = '';
+		if(isset($mybb->input['modoptions']['showinportal']) && (int)$mybb->input['modoptions']['showinportal'] == 1)
 		{
-			$showinportalcheck = ' checked="checked"';
+			$checked = ' checked="checked"';
 		}
-	}
 
-	// Show the option
-	eval('$ougc_showinportal = "'.$templates->get('ougc_showinportal_newthread').'";');
+		// Show the option
+		$name = 'modoptions[showinportal]';
+		eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
+	}
 }
 
 // Acual moderation magic
 function ougc_showinportal_moderation()
 {
 	global $mybb;
-	$fid = intval($mybb->input['fid']);
 
 	// Check input
 	if(!in_array($mybb->input['action'], array('multishowinportal', 'multiunshowinportal')))
@@ -319,8 +299,8 @@ function ougc_showinportal_moderation()
 		return;
 	}
 
-	// Return
-	if(!ougc_showinportal_check_perm($fid))
+	// Invalid forum
+	if(!is_moderator((int)$mybb->input['fid']) || !ougc_showinportal_check_groups($mybb->settings['ougc_showinportal_groups']) || !in_array(($fid = (int)$mybb->input['fid']), array_unique((array_map('intval', (explode(',', $mybb->settings['portal_announcementsfid'])))))))
 	{
 		error_no_permission();
 	}
@@ -335,7 +315,7 @@ function ougc_showinportal_moderation()
 	$threads = getids($fid, 'forum');
 
 	global $lang;
-	$lang->load('ougc_showinportal');
+	isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
 
 	// No threads selected, show error
 	if(count($threads) < 1)
@@ -343,25 +323,22 @@ function ougc_showinportal_moderation()
 		error($lang->error_inline_nothreadsselected);
 	}
 
-	// Do the magic.. not much magic really...
+	// Do the magic.. not much really...
+	$do = 0;
+	$log = $lang->ougc_showinportal_mycode_unshowinportal_done;
+	$redirect = $lang->ougc_showinportal_mycode_unshowinportal_redirect;
 	if($mybb->input['action'] == 'multishowinportal')
 	{
 		$do = 1;
 		$log = $lang->ougc_showinportal_mycode_showinportal_done;
 		$redirect = $lang->ougc_showinportal_mycode_showinportal_redirect;
 	}
-	else
-	{
-		$do = 0;
-		$log = $lang->ougc_showinportal_mycode_unshowinportal_done;
-		$redirect = $lang->ougc_showinportal_mycode_unshowinportal_redirect;
-	}
 
 	global $db;
 
 	// Update threads
-	$threads = implode(',', (array_unique((array_map('intval', $threads)))));
-	$db->update_query('threads', array('showinportal' => $do), "tid IN ({$threads}) AND showinportal!='{$do}'");
+	$tids = implode(',', (array_unique((array_map('intval', $threads)))));
+	$db->update_query('threads', array('showinportal' => $do), "tid IN ({$tids}) AND showinportal!='{$do}'");
 
 	// Log moderation action
 	log_moderator_action(array('fid' => $fid), $log);
@@ -377,212 +354,169 @@ function ougc_showinportal_moderation()
 // Inline moderation tool
 function ougc_showinportal_forumdisplay()
 {
-	global $mybb;
+	global $settings, $fid;
 
-	// Return
-	if(!ougc_showinportal_check_perm($mybb->input['fid']))
+	// Show inline moderation tool
+	if(is_moderator($fid) && ougc_showinportal_check_groups($settings['ougc_showinportal_groups']) && in_array($fid, array_unique((array_map('intval', (explode(',', $settings['portal_announcementsfid'])))))))
 	{
-		return false;
+		global $templates, $ougc_showinportal, $lang;
+		isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
+
+		eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_inlinemod').'";');
 	}
-
-	global $templates, $ougc_showinportal, $lang;
-	$lang->load('ougc_showinportal');
-
-	eval('$ougc_showinportal = "'.$templates->get('ougc_showinportal_inlinemoderation').'";');
 }
 
-// Replace MyCode with a "Read More..." kind of link
-function ougc_showinportal_portal_announcement()
+// Remove the "read more" mycode
+function ougc_showinportal_readmore(&$message, $fid, $tid)
 {
-	global $announcement, $forum;
-
-	// Return
-	if(!ougc_showinportal_check_perm($announcement['fid'], $announcement['firstpost'], $announcement['pid'], true))
-	{
-		return false;
-	}
+	global $settings;
 
 	// Remove MyCode only if it is found
-	if(preg_match("#\\".SHOWINPORTAL_MYCODE_STRIGN."#", $announcement['message']))
+	if(preg_match('#'.($tag = preg_quote($settings['ougc_showinportal_tag'])).'#', $message))
 	{
-		global $lang, $settings;
-		if(!isset($lang->ougc_showinportal))
+		$msg = preg_split('#'.$tag.'#', $message);
+		if(isset($msg[0]) && my_strlen($msg[0]) >= (int)$settings['minmessagelength'])
 		{
-			$lang->load('ougc_showinportal');
-		}
+			global $lang, $forum_cache;
+			isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
+			$forum_cache or ($forum_cache = cache_forums());
 
-		// We need to know what lang variable to use.
-		$lang_val = '';
-		if($forum[$announcement['fid']]['allowhtml'])
-		{
-			$lang_val = '_html';
-		}
-		elseif($forum[$announcement['fid']]['allowmycode'])
-		{
-			$lang_val = '_mycode';
-		}
-		$lang_val = 'ougc_showinportal_mycode'.$lang_val;
+			// We need to know what lang variable to use.
+			$lang_val = 'ougc_showinportal_mycode';
+			if((bool)$forum_cache[$fid]['allowmycode'])
+			{
+				$lang_val .= '_mycode';
+			}
+			elseif((bool)$forum_cache[$fid]['allowhtml'])
+			{
+				$lang_val .= '_html';
+			}
 
-		$announcement['message'] = preg_split("#\\".SHOWINPORTAL_MYCODE_STRIGN."#", $announcement['message']);
-		if(my_strlen($announcement['message'][0]) >= intval($mybb->settings['minmessagelength']))
-		{
-			$announcement['message'] = $announcement['message'][0].$lang->sprintf($lang->$lang_val, $settings['bburl'], $announcement['threadlink']);
-		}
-		else
-		{
-			$announcement['message'] = $announcement['message'][0].$announcement['message'][1];
+			$message = $msg[0].$lang->sprintf($lang->$lang_val, $settings['bburl'], get_thread_link($tid));
 		}
 	}
 }
 
 // Update a thread
-function ougc_showinportal_do_editpost(&$data)
+function ougc_showinportal_update_thread(&$dh)
 {
-	global $mybb, $modoptions;
+	global $mybb;
 
-	// Return
-	if(!ougc_showinportal_check_perm($data->data['fid']))
+	// Only moderators and allowed groups can use this
+	if(is_moderator($dh->data['fid']) && ougc_showinportal_check_groups($mybb->settings['ougc_showinportal_groups']))
 	{
-		return false;
-	}
-
-	// Set this thread to be shown in portal
-	$data->thread_update_data['showinportal'] = 0;
-	if(isset($mybb->input['showinportal']) && $mybb->input['showinportal'] == 1)
-	{
-		$data->thread_update_data['showinportal'] = 1;
+		// Check if a valid forum
+		if(!in_array($dh->data['fid'], array_unique((array_map('intval', (explode(',', $mybb->settings['portal_announcementsfid'])))))))
+		{
+			$dh->thread_update_data['showinportal'] = 0;
+		}
+		// Set this thread to be shown in portal
+		elseif(isset($mybb->input['showinportal']) && (int)$mybb->input['showinportal'] == 1)
+		{
+			$dh->thread_update_data['showinportal'] = 1;
+		}
 	}
 }
 
 // Validate thread input
-function ougc_showinportal_do_newthread(&$data)
+function ougc_showinportal_insert_thread(&$dh)
 {
-	global $mybb, $modoptions;
-	$thread = $data->data;
+	global $settings;
+	$dh->thread_insert_data['showinportal'] = 0;
 
-	// Return
-	if(!ougc_showinportal_check_perm($thread['fid']))
+	// Only moderators  and valid groups can use this
+	if(is_moderator($dh->data['fid']) && ougc_showinportal_check_groups($settings['ougc_showinportal_groups']))
 	{
-		return false;
-	}
+		global $modoptions;
 
-	// Set this thread to be shown in portal
-	if(isset($thread['modoptions']['showinportal']) && $thread['modoptions']['showinportal'] == 1)
-	{
-		$data->thread_insert_data['showinportal'] = 1;
+		// Check if a valid forum
+		// Set this thread to be shown in portal
+		if(in_array($dh->data['fid'], array_unique((array_map('intval', (explode(',', $settings['portal_announcementsfid'])))))) && isset($dh->data['modoptions']['showinportal']) && (int)$dh->data['modoptions']['showinportal'] == 1)
+		{
+			$dh->thread_insert_data['showinportal'] = 1;
+		}
 	}
-}
-
-// Check permissions
-function ougc_showinportal_check_perm($fid, $firstpost=0, $pid=0, $mycode=false)
-{
-	global $mybb;
-	$fid = intval($fid);
-
-	// Deactivated or guest
-	if($mybb->settings['ougc_showinportal_power'] != 1 || (!$mycode && !$mybb->user['uid']))
-	{
-		return false;
-	}
-
-	// Check for valid users
-	if(!$mycode && !ougc_check_groups($mybb->settings['ougc_showinportal_groups']))
-	{
-		return false;
-	}
-
-	// Only moderators can use this
-	if(!$mycode && !is_moderator($fid))
-	{
-		return false;
-	}
-	
-	// Check if a valid forum
-	$forums_a = array_unique((array_map('intval', (explode(',', $mybb->settings['portal_announcementsfid'])))));
-	if(!$mycode && (empty($mybb->settings['portal_announcementsfid']) || !in_array($fid, $forums_a)))
-	{
-		return false;
-	}
-
-	// This is not a 'thread' but a post
-	if($firstpost != $pid)
-	{
-		return false;
-	}
-
-	// Check MyCode option
-	if($mycode && $mybb->settings['ougc_showinportal_short'] != 1)
-	{
-		return false;
-	}
-
-	return true;
 }
 
 // This will check current user's groups.
-if(!function_exists('ougc_check_groups'))
+function ougc_showinportal_check_groups($groups, $empty=true)
 {
-	function ougc_check_groups($groups, $empty=true)
+	if(empty($groups) && $empty)
 	{
-		global $mybb;
-		if(empty($groups) && $empty == true)
-		{
-			return true;
-		}
-		if(!empty($mybb->user['additionalgroups']))
-		{
-			$usergroups = explode(',', $mybb->user['additionalgroups']);
-		}
-		if(!is_array($usergroups))
-		{
-			$usergroups = array();
-		}
-		$usergroups[] = $mybb->user['usergroup'];
-		$groups = explode(',', $groups);
-		foreach($usergroups as $gid)
-		{
-			if(in_array($gid, $groups))
-			{
-				return true;
-			}
-		}
-		return false;
+		return true;
 	}
+
+	global $PL;
+	$PL or require_once PLUGINLIBRARY;
+
+	return (bool)$PL->is_member($groups);
 }
 
-// Control object written by Zinga Burga / Yumi from ( http://mybbhacks.zingaburga.com/ )
-if(!function_exists('control_object'))
+// control_object by Zinga Burga from MyBBHacks ( mybbhacks.zingaburga.com ), 1.62
+function ougc_showinportal_control_object(&$obj, $code)
 {
-	function control_object(&$obj, $code)
+	static $cnt = 0;
+	$newname = '_objcont_'.(++$cnt);
+	$objserial = serialize($obj);
+	$classname = get_class($obj);
+	$checkstr = 'O:'.strlen($classname).':"'.$classname.'":';
+	$checkstr_len = strlen($checkstr);
+	if(substr($objserial, 0, $checkstr_len) == $checkstr)
 	{
-		static $cnt = 0;
-		$newname = '_objcont_'.(++$cnt);
-		$objserial = serialize($obj);
-		$classname = get_class($obj);
-		$checkstr = 'O:'.strlen($classname).':"'.$classname.'":';
-		$checkstr_len = strlen($checkstr);
-		if(substr($objserial, 0, $checkstr_len) == $checkstr)
+		$vars = array();
+		// grab resources/object etc, stripping scope info from keys
+		foreach((array)$obj as $k => $v)
 		{
-			$vars = array();
-			// grab resources/object etc, stripping scope info from keys
-			foreach((array)$obj as $k => $v)
+			if($p = strrpos($k, "\0"))
 			{
-				if($p = strrpos($k, "\0"))
-					$k = substr($k, $p+1);
-				$vars[$k] = $v;
+				$k = substr($k, $p+1);
 			}
-			if(!empty($vars))
-				$code .= '
-					function ___setvars(&$a) {
-						foreach($a as $k => &$v)
-							$this->$k = $v;
-					}
-				';
-			eval('class '.$newname.' extends '.$classname.' {'.$code.'}');
-			$obj = unserialize('O:'.strlen($newname).':"'.$newname.'":'.substr($objserial, $checkstr_len));
-			if(!empty($vars))
-				$obj->___setvars($vars);
+			$vars[$k] = $v;
 		}
-		// else not a valid object or PHP serialize has changed
+		if(!empty($vars))
+		{
+			$code .= '
+				function ___setvars(&$a) {
+					foreach($a as $k => &$v)
+						$this->$k = $v;
+				}
+			';
+		}
+		eval('class '.$newname.' extends '.$classname.' {'.$code.'}');
+		$obj = unserialize('O:'.strlen($newname).':"'.$newname.'":'.substr($objserial, $checkstr_len));
+		if(!empty($vars))
+		{
+			$obj->___setvars($vars);
+		}
+	}
+	// else not a valid object or PHP serialize has changed
+}
+
+// Check for PluginLibrary dependencies
+function ougc_showinportal_reqpl()
+{
+	if(!file_exists(PLUGINLIBRARY))
+	{
+		global $lang;
+		isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
+		$info = ougc_showinportal_info();
+
+		flash_message($lang->sprintf($lang->ougc_showinportal_plreq, $info['pl_url'], $info['pl_version']), 'error');
+		admin_redirect('index.php?module=config-plugins');
+		exit;
+	}
+
+	global $PL;
+	$PL or require_once PLUGINLIBRARY;
+	$info = ougc_showinportal_info();
+
+	if($PL->version < $version)
+	{
+		global $lang;
+		isset($lang->ougc_showinportal) or $lang->load('ougc_showinportal');
+
+		flash_message($lang->sprintf($lang->ougc_showinportal_plold, $PL->version, $info['pl_version'], $info['pl_url']), 'error');
+		admin_redirect('index.php?module=config-plugins');
+		exit;
 	}
 }
