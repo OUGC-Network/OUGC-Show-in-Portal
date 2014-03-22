@@ -108,8 +108,8 @@ function ougc_showinportal_info()
 		'website'		=> 'http://omarg.me',
 		'author'		=> 'Omar G.',
 		'authorsite'	=> 'http://omarg.me',
-		'version'		=> '1.1',
-		'versioncode'	=> 1100,
+		'version'		=> '1.2',
+		'versioncode'	=> 1200,
 		'compatibility'	=> '16*',
 		'myalerts'		=> 105,
 		'pl'			=> array(
