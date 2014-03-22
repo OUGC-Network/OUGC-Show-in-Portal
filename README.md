@@ -8,6 +8,7 @@ Choose what threads to show in portal while creating / editing.
 ### Requirements
 - [MyBB](http://www.mybb.com/downloads "Download MyBB") version 1.6.5+
 - [PluginLibrary](http://mods.mybb.com/view/pluginlibrary "Download PluginLibrary") library for MyBB to work.
+- [MyAlerts](https://github.com/euantorano/myalerts "Download MyAlerts") plugin for MyAlerts integration to work to work.
 
 ### Installation
 1. Upload the content of the "upload" folder to your MyBB root folder.

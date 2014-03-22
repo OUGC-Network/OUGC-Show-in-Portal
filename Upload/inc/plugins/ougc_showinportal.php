@@ -2,13 +2,13 @@
 
 /***************************************************************************
  *
- *   OUGC Show in Portal plugin (/inc/plugins/ougc_showinportal.php)
- *	 Author: Omar Gonzalez
- *   Copyright: © 2012-2014 Omar Gonzalez
- *   
- *   Website: http://omarg.me
+ *	OUGC Show in Portal plugin (/inc/plugins/ougc_showinportal.php)
+ *	Author: Omar Gonzalez
+ *	Copyright: © 2012-2014 Omar Gonzalez
  *
- *   Choose what threads to show in portal while creating / editing.
+ *	Website: http://omarg.me
+ *
+ *	Choose what threads to show in portal while creating / editing.
  *
  ***************************************************************************
  
@@ -111,6 +111,7 @@ function ougc_showinportal_info()
 		'version'		=> '1.2',
 		'versioncode'	=> 1200,
 		'compatibility'	=> '16*',
+		'guid'			=> '716bc5bbc9f8485f2ccc954332fe03a7',
 		'myalerts'		=> 105,
 		'pl'			=> array(
 			'version'	=> 12,
