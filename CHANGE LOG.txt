@@ -1,0 +1,7 @@
+1.1 => 1.2
+==============================
+	- Code optimization.
+	- PluginLibrary 12 is now required for the plugin to work.
+	- Enhancement: Language support for template set and setting group.
+	- Feature: Administrators can now create custom moderation tools which modify thread portal status.
+	- Feature: MyAlerts integration is added (MyAlerts 1.05 and later required).

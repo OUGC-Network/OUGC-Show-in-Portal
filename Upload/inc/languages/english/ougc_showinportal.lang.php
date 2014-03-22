@@ -4,9 +4,9 @@
  *
  *   OUGC Show in Portal plugin (/inc/languages/english/ougc_showinportal.php)
  *	 Author: Omar Gonzalez
- *   Copyright: © 2012 Omar Gonzalez
+ *   Copyright: © 2012-2014 Omar Gonzalez
  *   
- *   Website: http://community.mybb.com/user-25096.html
+ *   Website: http://omarg.me
  *
  *   Choose what threads to show in portal while creating / editing.
  *
@@ -27,11 +27,12 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-// Plugin information.
-$l['ougc_showinportal'] = 'OUGC Show in Portal';
+// Plugin API
+$l['setting_group_ougc_showinportal'] = 'OUGC Show in Portal';
 
-// Option text
-$l['ougc_showinportal_newthread'] = '<b>Portal Thread:</b> show this thread in the front portal.';
+// Newthread/Newreply
+$l['ougc_showinportal_input_newthread'] = '<strong>Portal Thread:</strong> show this thread in the portal.';
+$l['ougc_showinportal_input_quickreply'] = '<strong>Portal Thread</strong>';
 
 // MyCode lang
 $l['ougc_showinportal_readmore'] = '
@@ -45,9 +46,19 @@ $l['ougc_showinportal_readmore_mycode'] = '
 [url={1}/{2}]Read More...[/url]';
 
 // Inline moderation
-$l['ougc_showinportal_mycode_showinportal'] = 'Portal Threads: Add';
-$l['ougc_showinportal_mycode_unshowinportal'] = 'Portal Threads: Remove';
-$l['ougc_showinportal_mycode_showinportal_done'] = 'Threads Added to Portal';
-$l['ougc_showinportal_mycode_unshowinportal_done'] = 'Threads Removed from Portal';
-$l['ougc_showinportal_mycode_showinportal_redirect'] = 'The selected threads have been added to the portal.<br />You will now be returned to your previous location.';
-$l['ougc_showinportal_mycode_unshowinportal_redirect'] = 'The selected threads have been removed from portal.<br />You will now be returned to your previous location.';
+$l['ougc_showinportal_showinportal'] = 'Add To Portal';
+$l['ougc_showinportal_unshowinportal'] = 'Remove From Portal';
+$l['ougc_showinportal_showinportalthread'] = 'Add/Remove from Portal';
+$l['ougc_showinportal_showinportal_done'] = 'Thread(s) Added to the Portal';
+$l['ougc_showinportal_unshowinportal_done'] = 'Thread(s) Removed from the Portal';
+$l['ougc_showinportal_showinportal_redirect'] = 'The selected thread(s) have been added to the portal.<br />You will now be redirected.';
+$l['ougc_showinportal_unshowinportal_redirect'] = 'The selected thread(s) have been removed from the portal.<br />You will now be redirected.';
+
+// MyAlerts
+$l['ougc_showinportal_myalerts_showinportal'] = '{1} added your thread "<a href="{2}">{3}</a>" to the portal.';
+$l['ougc_showinportal_myalerts_unshowinportal'] = '{1} removed your thread "<a href="{2}">{3}</a>" from the portal.';
+$l['ougc_showinportal_myalerts_setting'] = 'Receive alert when one your threads are make (un)visible in the portal?';
+$l['ougc_showinportal_myalerts_helpdoc'] = '<strong>Show In Portal</strong>
+<p>
+	This alert type is received whenever one moderator makes your threads (un)visible in the portal.
+</p>';
