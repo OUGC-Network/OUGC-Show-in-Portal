@@ -28,7 +28,7 @@
 ****************************************************************************/
 
 // Die if IN_MYBB is not defined, for security reasons.
-defined('IN_MYBB') or die('This file cannot be accessed directly.');
+defined('IN_MYBB') or die('Direct initialization of this file is not allowed.');
 
 // Run/Add Hooks
 if(defined('IN_ADMINCP'))
@@ -148,8 +148,8 @@ function ougc_showinportal_activate()
 			'value'			=>	'[!--more--]',
 		),
 		'myalerts'	=> array(
-		   'title'			=> $lang->settings_ougc_myalerts_tag,
-		   'description'	=> $lang->settings_ougc_myalerts_tag_desc,
+		   'title'			=> $lang->setting_ougc_showinportal_myalerts,
+		   'description'	=> $lang->setting_ougc_showinportal_myalerts_desc,
 		   'optionscode'	=> 'yesno',
 			'value'			=>	0,
 		)
@@ -1015,9 +1015,95 @@ class OUGC_ShowInPortal
 		$where = implode('\',\'', array_filter(array_map('intval', $tids)));
 		$db->update_query('threads', array('showinportal' => $sip), 'tid IN (\''.$where.'\')');
 
+		$lang_var = 'ougc_showinportal_pm_subject'.($sip ? '' : '_removed');
+		$lang_var_message = 'ougc_showinportal_pm_message'.($sip ? '' : '_removed');
+
+		$this->send_pm(array(
+			'subject'		=> $lang->{$lang_var},
+			'message'		=> $lang->{$lang_var_message}
+		), -1, true, $tids);
+
 		$this->my_alerts($sip, $tids);
 
 		return true;
+	}
+
+	// Send a Private Message to a user  (Copied from MyBB 1.7)
+	function send_pm($pm, $fromid=0, $admin_override=false, $tids)
+	{
+		global $mybb;
+
+		if(!$mybb->settings['enablepms'])
+		{
+			return false;
+		}
+
+		if (!is_array($pm))
+		{
+			return false;
+		}
+
+		if (!$pm['subject'] ||!$pm['message'] || (!$pm['receivepms'] && !$admin_override))
+		{
+			return false;
+		}
+
+		global $lang, $db, $session;
+		$lang->load('messages');
+
+		require_once MYBB_ROOT."inc/datahandlers/pm.php";
+
+		$pmhandler = new PMDataHandler();
+
+		$pm['touid'] = array();
+
+		$query = $db->simple_select('threads', 'uid', 'uid!=\'0\' AND uid!=\''.(int)$mybb->user['uid'].'\' AND tid IN (\''.implode('\',\'', array_filter(array_map('intval', $tids))).'\')');
+		while($uid = (int)$db->fetch_field($query, 'uid'))
+		{
+			$pm['touid'][$uid] = $uid;
+		}
+
+		if(!$pm['touid'])
+		{
+			return;
+		}
+
+		// Build our final PM array
+		$pm = array(
+			'subject'		=> $pm['subject'],
+			'message'		=> $lang->sprintf($pm['message'], $mybb->settings['bbname']),
+			'icon'			=> -1,
+			'fromid'		=> ($fromid == 0 ? (int)$mybb->user['uid'] : ($fromid < 0 ? 0 : $fromid)),
+			'toid'			=> $pm['touid'],
+			'bccid'			=> array(),
+			'do'			=> '',
+			'pmid'			=> '',
+			'saveasdraft'	=> 0,
+			'options'	=> array(
+				'signature'			=> 0,
+				'disablesmilies'	=> 0,
+				'savecopy'			=> 0,
+				'readreceipt'		=> 0
+			)
+		);
+
+		if(isset($mybb->session))
+		{
+			$pm['ipaddress'] = $mybb->session->packedip;
+		}
+
+		// Admin override
+		$pmhandler->admin_override = (int)$admin_override;
+
+		$pmhandler->set_data($pm);
+
+		if($pmhandler->validate_pm())
+		{
+			$pmhandler->insert_pm();
+			return true;
+		}
+
+		return false;
 	}
 
 	// MyAlerts support

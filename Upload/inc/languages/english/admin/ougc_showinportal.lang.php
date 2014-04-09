@@ -38,6 +38,8 @@ $l['setting_ougc_showinportal_forums'] = 'Ignored Forums';
 $l['setting_ougc_showinportal_forums_desc'] = 'Forums to exclude from this feature.';
 $l['setting_ougc_showinportal_tag'] = 'CutOff MyCode Tag';
 $l['setting_ougc_showinportal_tag_desc'] = 'Do you want to use a MyCode to cut portal messages? Leave empty to disable. Default "[!--more--]".';
+$l['setting_ougc_showinportal_sendpm'] = 'Send PM';
+$l['setting_ougc_showinportal_sendpm_desc'] = 'Do you want to send an PM to users each time one of their threads is added/removed from the portal?';
 $l['setting_ougc_showinportal_myalerts'] = 'MyAlerts Integration';
 $l['setting_ougc_showinportal_myalerts_desc'] = 'Do you want to send an alert to users each time one of their threads is added/removed from the portal?';
 

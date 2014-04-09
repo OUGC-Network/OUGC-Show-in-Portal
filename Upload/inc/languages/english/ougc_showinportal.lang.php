@@ -54,6 +54,16 @@ $l['ougc_showinportal_unshowinportal_done'] = 'Thread(s) Removed from the Portal
 $l['ougc_showinportal_showinportal_redirect'] = 'The selected thread(s) have been added to the portal.<br />You will now be redirected.';
 $l['ougc_showinportal_unshowinportal_redirect'] = 'The selected thread(s) have been removed from the portal.<br />You will now be redirected.';
 
+// Send PM
+$l['ougc_showinportal_pm_subject'] = 'Your thread has been added to the portal.';
+$l['ougc_showinportal_pm_message'] = 'Hi! This PM is an automatic notification to let you know that one or more of your threads have been added to the portal page by one or more moderators / administrators.
+
+Cheers, {2}.';
+$l['ougc_showinportal_pm_subject_removed'] = 'Your thread has been removed from the portal.';
+$l['ougc_showinportal_pm_message_removed'] = 'Hi! This PM is an automatic notification to let you know that one or more of your threads have been removed from the portal page by one or more moderators / administrators.
+
+Cheers, {2}.';
+
 // MyAlerts
 $l['ougc_showinportal_myalerts_showinportal'] = '{1} added your thread "<a href="{2}">{3}</a>" to the portal.';
 $l['ougc_showinportal_myalerts_unshowinportal'] = '{1} removed your thread "<a href="{2}">{3}</a>" from the portal.';
