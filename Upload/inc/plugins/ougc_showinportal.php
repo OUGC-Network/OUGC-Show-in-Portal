@@ -33,33 +33,16 @@ defined('IN_MYBB') or die('Direct initialization of this file is not allowed.');
 // Run/Add Hooks
 if(defined('IN_ADMINCP'))
 {
-	$plugins->add_hook('admin_config_settings_start', create_function('', 'global $showinportal;$showinportal->lang_load();'));
-	$plugins->add_hook('admin_style_templates_set', create_function('', 'global $showinportal;$showinportal->lang_load();'));
-	$plugins->add_hook('admin_config_settings_change', 'ougc_showinportal_settings_change');
+	$plugins->add_hook('admin_config_settings_start', array('OUGC_ShowInPortal', 'lang_load'));
+	$plugins->add_hook('admin_style_templates_set', array('OUGC_ShowInPortal', 'lang_load'));
+	$plugins->add_hook('admin_config_settings_change', array('OUGC_ShowInPortal', 'lang_load'));
 	$plugins->add_hook('admin_formcontainer_end', 'ougc_showinportal_modtools');
-	$plugins->add_hook('admin_config_mod_tools_edit_thread_tool_commit', 'ougc_showinportal_modtools_commit');
 	$plugins->add_hook('admin_config_mod_tools_add_thread_tool_commit', 'ougc_showinportal_modtools_commit');
+	$plugins->add_hook('admin_config_mod_tools_edit_thread_tool_commit', 'ougc_showinportal_modtools_commit');
 }
 else
 {
 	global $settings;
-
-	// All right, so what if fid = -1? Lest make that equal to all forums
-	if($settings['portal_announcementsfid'] == '-1')
-	{
-		global $forum_cache;
-		$forum_cache or cache_forums();
-
-		$fids = array();
-		foreach($forum_cache as $forum)
-		{
-			if($forum['type'] == 'f' && $forum['active'] == 1 && $forum['open'] == 1)
-			{
-				$fids[(int)$forum['fid']] = (int)$forum['fid'];
-			}
-		}
-		$settings['portal_announcementsfid'] = implode(',', array_unique($fids));
-	}
 
 	$plugins->add_hook('moderation_start', 'ougc_showinportal_moderation');
 	$plugins->add_hook('newthread_end', 'ougc_showinportal_newthread_end');
@@ -67,12 +50,11 @@ else
 	$plugins->add_hook('showthread_end', 'ougc_showinportal_showthread_end');
 	$plugins->add_hook('datahandler_post_insert_post', 'ougc_showinportal_post_insert_post');
 	$plugins->add_hook('newreply_end', 'ougc_showinportal_newthread_end');
-	$plugins->add_hook('forumdisplay_end', 'ougc_showinportal_forumdisplay_end');
 	$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
 	$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
 
 	// My Alerts
-	$plugins->add_hook('myalerts_load_lang', create_function('', 'global $showinportal;$showinportal->lang_load();'));
+	$plugins->add_hook('myalerts_load_lang', array('OUGC_ShowInPortal', 'lang_load'));
 	$plugins->add_hook('misc_help_helpdoc_start', 'ougc_showinportal_myalerts_helpdoc');
 	$plugins->add_hook('myalerts_alerts_output_end', 'ougc_showinportal_myalerts_output');
 
@@ -89,7 +71,7 @@ else
 			$templatelist .= ',';
 		}
 
-		$templatelist .= 'ougcshowinportal_input,ougcshowinportal_inlinemod';
+		$templatelist .= 'ougcshowinportal_input';
 	}
 }
 
@@ -108,10 +90,9 @@ function ougc_showinportal_info()
 		'website'		=> 'http://omarg.me',
 		'author'		=> 'Omar G.',
 		'authorsite'	=> 'http://omarg.me',
-		'version'		=> '1.2',
-		'versioncode'	=> 1200,
-		'compatibility'	=> '16*',
-		'guid'			=> '716bc5bbc9f8485f2ccc954332fe03a7',
+		'version'		=> '1.7',
+		'versioncode'	=> 1700,
+		'compatibility'	=> '18*',
 		'myalerts'		=> 105,
 		'pl'			=> array(
 			'version'	=> 12,
@@ -130,20 +111,20 @@ function ougc_showinportal_activate()
 	// Add settings group
 	$PL->settings('ougc_showinportal', $lang->setting_group_ougc_showinportal, $lang->setting_group_ougc_showinportal_desc, array(
 		'groups'	=> array(
-		   'title'			=> $lang->settings_ougc_showinportal_groups,
-		   'description'	=> $lang->settings_ougc_showinportal_groups_desc,
-		   'optionscode'	=> 'text',
+		   'title'			=> $lang->setting_ougc_showinportal_groups,
+		   'description'	=> $lang->setting_ougc_showinportal_groups_desc,
+		   'optionscode'	=> 'groupselect',
 			'value'			=>	'3,4,6',
 		),
 		'forums'	=> array(
-		   'title'			=> $lang->settings_ougc_showinportal_forums,
-		   'description'	=> $lang->settings_ougc_showinportal_forums_desc,
-		   'optionscode'	=> 'text',
+		   'title'			=> $lang->setting_ougc_showinportal_forums,
+		   'description'	=> $lang->setting_ougc_showinportal_forums_desc,
+		   'optionscode'	=> 'forumselect',
 			'value'			=>	'',
 		),
 		'tag'		=> array(
-		   'title'			=> $lang->settings_ougc_showinportal_tag,
-		   'description'	=> $lang->settings_ougc_showinportal_tag_desc,
+		   'title'			=> $lang->setting_ougc_showinportal_tag,
+		   'description'	=> $lang->setting_ougc_showinportal_tag_desc,
 		   'optionscode'	=> 'text',
 			'value'			=>	'[!--more--]',
 		),
@@ -157,16 +138,13 @@ function ougc_showinportal_activate()
 
 	// Add template group
 	$PL->templates('ougcshowinportal', '<lang:setting_group_ougc_showinportal>', array(
-		'input'		=> '<br /><label><input type="checkbox" class="checkbox" name="{$name}" value="1"{$checked} />&nbsp;{$message}</label>',
-		'inlinemod'	=> '<option value="{$value}">{$message}</option>'
+		'input'		=> '<br /><label><input type="checkbox" class="checkbox" name="{$name}" value="1"{$checked} />&nbsp;{$message}</label>'
 	));
 
 	// Modify templates
 	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
 	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('stick_thread}</label>').'#', 'stick_thread}</label><!--OUGC_SHOWINPORTAL-->');
 	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
-	find_replace_templatesets('forumdisplay_inlinemoderation', '#'.preg_quote('unapprove_threads}</option>').'#', 'unapprove_threads}</option><!--OUGC_SHOWINPORTAL-->');
-	find_replace_templatesets('showthread_moderationoptions', '#'.preg_quote('{$approveunapprovethread}').'#', '{$approveunapprovethread}<!--OUGC_SHOWINPORTAL-->');
 
 	// Insert/update version into cache
 	$plugins = $cache->read('ougc_plugins');
@@ -319,68 +297,12 @@ function ougc_showinportal_pl_check()
 	}
 }
 
-// Language support for settings
-function ougc_showinportal_settings_change()
-{
-	global $db, $mybb;
-
-	$query = $db->simple_select('settinggroups', 'name', 'gid=\''.(int)$mybb->input['gid'].'\'');
-	$groupname = $db->fetch_field($query, 'name');
-	if($groupname == 'ougc_showinportal')
-	{
-		global $plugins, $showinportal;
-		$showinportal->lang_load();
-
-		if($mybb->request_method == 'post')
-		{
-			global $settings;
-
-			$gids = '';
-			if(isset($mybb->input['ougc_showinportal_groups']) && is_array($mybb->input['ougc_showinportal_groups']))
-			{
-				$gids = implode(',', (array)array_filter(array_map('intval', $mybb->input['ougc_showinportal_groups'])));
-			}
-
-			$mybb->input['upsetting']['ougc_showinportal_groups'] = $gids;
-
-			$fids = '';
-			if(isset($mybb->input['ougc_defaultpoststyle_forums']) && is_array($mybb->input['ougc_defaultpoststyle_forums']))
-			{
-				$fids = implode(',', (array)array_filter(array_map('intval', $mybb->input['ougc_defaultpoststyle_forums'])));
-			}
-
-			$mybb->input['upsetting']['ougc_defaultpoststyle_forums'] = $fids;
-
-			return;
-		}
-
-		$plugins->add_hook('admin_formcontainer_output_row', 'ougc_showinportal_formcontainer_output_row');
-	}
-}
-
-// Friendly settings
-function ougc_showinportal_formcontainer_output_row(&$args)
-{
-	if($args['row_options']['id'] == 'row_setting_ougc_showinportal_groups')
-	{
-		global $form, $settings;
-
-		$args['content'] = $form->generate_group_select('ougc_showinportal_groups[]', explode(',', $settings['ougc_showinportal_groups']), array('multiple' => true, 'size' => 5));
-	}
-	if($args['row_options']['id'] == 'row_setting_ougc_showinportal_forums')
-	{
-		global $form, $settings;
-
-		$args['content'] = $form->generate_forum_select('ougc_showinportal_forums[]', explode(',', $settings['ougc_showinportal_forums']), array('multiple' => true, 'size' => 5));
-	}
-}
-
 // Moderator Tools
 function ougc_showinportal_modtools()
 {
 	global $mybb, $run_module, $form_container, $lang;
 
-	if(!($run_module == 'config' && !empty($form_container->_title) && !empty($lang->thread_moderation) && $form_container->_title == $lang->thread_moderation && $mybb->input['action'] != 'add_post_tool' && $mybb->input['action'] != 'edit_post_tool'))
+	if(!($run_module == 'config' && !empty($form_container->_title) && !empty($lang->thread_moderation) && $form_container->_title == $lang->thread_moderation && $mybb->get_input('action') != 'add_post_tool' && $mybb->get_input('action') != 'edit_post_tool'))
 	{
 		return;
 	}
@@ -388,22 +310,22 @@ function ougc_showinportal_modtools()
 	global $form, $showinportal;
 	$showinportal->lang_load();
 
-	if($mybb->input['action'] != 'add_thread_tool')
+	if($mybb->get_input('action') != 'add_thread_tool' && !isset($mybb->input['showinportal']))
 	{
 		global $thread_options;
 
 		$mybb->input['showinportal'] = (int)$thread_options['showinportal'];
 	}
 
-	$val = (int)$mybb->input['showinportal'];
-	$val = ($val > 3 || $val < 0 ? 0 : $val);
+	$sip = $mybb->get_input('showinportal', 1);
+	$sip = ($sip > 3 || $sip < 0 ? 0 : (int)$sip);
 
 	$form_container->output_row($lang->ougc_showinportal_modtool.' <em>*</em>', '', $form->generate_select_box('showinportal', array(
 		0	=> $lang->no_change,
 		1	=> $lang->ougc_showinportal_modtool_show,
 		2	=> $lang->ougc_showinportal_modtool_remove,
 		3	=> $lang->toggle
-	), $val, array('id' => 'showinportal')), 'showinportal');
+	), $sip, array('id' => 'showinportal')), 'showinportal');
 }
 
 // Save moderator tools input
@@ -411,21 +333,24 @@ function ougc_showinportal_modtools_commit()
 {
 	global $mybb;
 
-	if($mybb->request_method != 'post')
+	if($mybb->request_method == 'post')
 	{
-		return;
+		global $db, $thread_options, $update_tool, $new_tool;
+
+		$sip = $mybb->get_input('showinportal', 1);
+		$thread_options['showinportal'] = ($sip > 3 || $sip < 0 ? 0 : $sip);
+
+		$var = $mybb->get_input('action') == 'add_thread_tool' ? 'new_tool' : 'update_tool';
+
+		${$var}['threadoptions'] = $db->escape_string(serialize($thread_options));
+
+		if($mybb->get_input('action') == 'add_thread_tool')
+		{
+			global $tid;
+
+			$db->update_query('modtools', $new_tool, 'tid=\''.$tid.'\'');
+		}
 	}
-
-	global $db, $tid, $thread_options;
-
-	$tid = ($mybb->input['action'] == 'add_thread_tool' ? $tid : $mybb->input['tid']);
-
-	$val = (int)$mybb->input['showinportal'];
-	$thread_options['showinportal'] = ($val > 3 || $val < 0 ? 0 : $val);
-
-	$thread_options = $db->escape_string(serialize($thread_options));
-
-	$db->update_query('modtools', array('threadoptions' => $thread_options), 'tid=\''.(int)$tid.'\'');
 }
 
 // Moderation magic
@@ -436,9 +361,9 @@ function ougc_showinportal_moderation()
 	global $mybb;
 
 	// Custom moderator tools process
-	if(!in_array($mybb->input['action'], array('showinportal', 'multishowinportal', 'multiunshowinportal')))
+	if(!in_array($mybb->get_input('action'), array('showinportal', 'multishowinportal', 'multiunshowinportal')))
 	{
-		if(in_array($mybb->input['action'], array('reports', 'allreports', 'getip', 'cancel_delayedmoderation', 'delayedmoderation', 'do_delayedmoderation', 'openclosethread', 'stick', 'removeredirects', 'deletethread', 'do_deletethread', 'deletepoll', 'do_deletepoll', 'approvethread', 'unapprovethread', 'deleteposts', 'do_deleteposts', 'mergeposts', 'do_mergeposts', 'move', 'do_move', 'threadnotes', 'do_threadnotes', 'merge', 'do_merge', 'split', 'do_split', 'removesubscriptions', 'multideletethreads', 'do_multideletethreads', 'multiopenthreads', 'multiclosethreads', 'multiapprovethreads', 'multiunapprovethreads', 'multistickthreads', 'multiunstickthreads', 'multimovethreads', 'do_multimovethreads', 'multideleteposts', 'do_multideleteposts', 'multimergeposts', 'do_multimergeposts', 'multisplitposts', 'do_multisplitposts', 'multiapproveposts', 'multiunapproveposts')) || ($tid = (int)$mybb->input['action']) < 1)
+		if(in_array($mybb->get_input('action'), array('reports', 'allreports', 'getip', 'cancel_delayedmoderation', 'delayedmoderation', 'do_delayedmoderation', 'openclosethread', 'stick', 'removeredirects', 'deletethread', 'do_deletethread', 'deletepoll', 'do_deletepoll', 'approvethread', 'unapprovethread', 'deleteposts', 'do_deleteposts', 'mergeposts', 'do_mergeposts', 'move', 'do_move', 'threadnotes', 'do_threadnotes', 'merge', 'do_merge', 'split', 'do_split', 'removesubscriptions', 'multideletethreads', 'do_multideletethreads', 'multiopenthreads', 'multiclosethreads', 'multiapprovethreads', 'multiunapprovethreads', 'multistickthreads', 'multiunstickthreads', 'multimovethreads', 'do_multimovethreads', 'multideleteposts', 'do_multideleteposts', 'multimergeposts', 'do_multimergeposts', 'multisplitposts', 'do_multisplitposts', 'multiapproveposts', 'multiunapproveposts')) || ($tid = $mybb->get_input('action', 1)) < 1)
 		{
 			return;
 		}
@@ -460,97 +385,6 @@ function ougc_showinportal_moderation()
 
 		return;
 	}
-
-	// In-line moderation tools
-	global $mybb, $showinportal, $lang, $db;
-	$showinportal->lang_load();
-
-	$isthread = ($mybb->input['action'] == 'showinportal');
-	$fid = (int)$mybb->input['fid'];
-
-	if($isthread)
-	{
-		$thread = get_thread($mybb->input['tid']);
-		$fid = $thread['fid'];
-		$thread['tid'] = (int)$thread['tid'];
-		if(!$thread['tid'])
-		{
-			error($lang->error_invalidthread);
-		}
-	}
-
-	if(!$showinportal->can_moderate($fid))
-	{
-		error_no_permission();
-	}
-
-	// Check forum password 
-	check_forum_password($fid);
-
-	// Verify post check
-	verify_post_check($mybb->input['my_post_key']);
-
-	// Get threads array
-	if($isthread)
-	{
-		$threads = array($thread['tid']);
-	}
-	else
-	{
-		$threads = getids($fid, 'forum');
-	}
-
-	// No threads selected, show error
-	if(count($threads) < 1)
-	{
-		error($lang->error_inline_nothreadsselected);
-	}
-
-	// Do the magic.. not much really...
-	$loglangvar = 'ougc_showinportal_unshowinportal_done';
-	$redirectlangvar = 'ougc_showinportal_unshowinportal_redirect';
-
-	if($isthread)
-	{
-		$url = get_thread_link($thread['tid']);
-		$sip = !$thread['showinportal'];
-		$threads = array($thread['tid']);
-	}
-	else
-	{
-		$url = get_forum_link($fid);
-		$sip = ($mybb->input['action'] == 'multishowinportal');
-	}
-
-	if($sip)
-	{
-		$loglangvar = 'ougc_showinportal_showinportal_done';
-		$redirectlangvar = 'ougc_showinportal_showinportal_redirect';
-	}
-
-
-	// Update threads
-	$showinportal->thread_update($sip, $threads);
-
-	// Log moderation action
-	$data = array('fid' => $fid);
-	if($isthread)
-	{
-		$data['tid'] = $thread['tid'];
-	}
-	else
-	{
-		$data['tids'] = implode(',', $threads);
-	}
-
-	log_moderator_action($data, $lang->{$loglangvar});
-
-	// Clear inline moderation for those threads
-	$isthread or clearinline($fid, 'forum');
-
-	// Redirect
-	moderation_redirect($url, $lang->{$redirectlangvar});
-	exit;
 }
 
 // Took from xThreads START
@@ -633,16 +467,16 @@ function ougc_showinportal_newthread_end()
 		return;
 	}
 
-	global $templates, $lang;
+	global $templates, $lang, $thread;
 	$showinportal->lang_load();
 
 	// Figure out if checked
-	$sip = (int)$mybb->input['modoptions']['showinportal'];
-	if(THIS_SCRIPT == 'newreply.php' && !$mybb->input['processed'])
+	if(THIS_SCRIPT == 'newreply.php' && !isset($mybb->input['modoptions']) && !isset($mybb->input['modoptions']['showinportal']) && isset($thread['showinportal']))
 	{
-		$sip = (int)$thread['closed'];
+		$mybb->input['modoptions']['showinportal'] = (int)$thread['showinportal'];
 	}
-	
+	$sip = (int)$mybb->input['modoptions']['showinportal'];
+
 	$checked = '';
 	if(!empty($sip))
 	{
@@ -703,17 +537,13 @@ function ougc_showinportal_showthread_end()
 	eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
 
 	$quickreply = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $quickreply);
-
-	$value = 'showinportal';
-	$message = $lang->ougc_showinportal_showinportalthread;
-	eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_inlinemod').'";');
-
-	$moderationoptions = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $moderationoptions);
 }
 
 // Validate reply input
 function ougc_showinportal_post_insert_post(&$args)
 {
+	global $showinportal;
+
 	$thread = get_thread($args->data['tid']);
 
 	if($thread['showinportal'] && !$args->data['modoptions']['showinportal'])
@@ -724,30 +554,6 @@ function ougc_showinportal_post_insert_post(&$args)
 	{
 		$showinportal->thread_update(1, $thread['tid']);
 	}
-}
-
-// Inline moderator tool
-function ougc_showinportal_forumdisplay_end()
-{
-	global $fid, $showinportal, $settings;
-
-	if(!$showinportal->can_moderate($fid))
-	{
-		return;
-	}
-
-	global $lang, $templates, $threadslist;
-	$showinportal->lang_load();
-
-	$value = 'multishowinportal';
-	$message = $lang->ougc_showinportal_showinportal;
-	eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_inlinemod').'";');
-
-	$value = 'multiunshowinportal';
-	$message = $lang->ougc_showinportal_unshowinportal;
-	eval('$ougc_showinportal .= "'.$templates->get('ougcshowinportal_inlinemod').'";');
-
-	$threadslist = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $threadslist);
 }
 
 // Remove MyCode from posts (only if visible in portal)
@@ -783,6 +589,12 @@ function ougc_showinportal_portal()
 			{
 				$string = strtr($string, array(
 					\'t.closed\' => \'t.showinportal=\\\'1\\\' AND t.closed\'
+				));
+			}
+			if(!$write_query && strpos($string, \'OUNT(t.tid) AS thread\'))
+			{
+				$string = strtr($string, array(
+					\'t.visible\' => \'t.showinportal=\\\'1\\\' AND t.visible\'
 				));
 			}
 			return parent::query($string, $hide_errors, $write_query);
@@ -983,7 +795,7 @@ class OUGC_ShowInPortal
 
 		global $settings;
 
-		if(!$this->is_member($settings['portal_announcementsfid'], $fid))
+		if(($settings['portal_announcementsfid'] != -1 && !$this->is_member($settings['portal_announcementsfid'], $fid)) && !$settings['portal_announcementsfid'])
 		{
 			return false;
 		}
@@ -993,7 +805,7 @@ class OUGC_ShowInPortal
 			return false;
 		}
 
-		if(!$this->is_member($settings['ougc_showinportal_groups']))
+		if(($settings['ougc_showinportal_groups'] != -1 && !$this->is_member($settings['ougc_showinportal_groups'])) || !$settings['ougc_showinportal_groups'])
 		{
 			return false;
 		}
@@ -1009,7 +821,8 @@ class OUGC_ShowInPortal
 			$tids = array($tids);
 		}
 
-		global $db;
+		global $db, $lang;
+		$this->lang_load();
 
 		$sip = (int)(bool)$sip;
 		$where = implode('\',\'', array_filter(array_map('intval', $tids)));
@@ -1019,8 +832,9 @@ class OUGC_ShowInPortal
 		$lang_var_message = 'ougc_showinportal_pm_message'.($sip ? '' : '_removed');
 
 		$this->send_pm(array(
-			'subject'		=> $lang->{$lang_var},
-			'message'		=> $lang->{$lang_var_message}
+			'subject'	=> $lang->{$lang_var},
+			'message'	=> $lang->{$lang_var_message},
+			'touid'		=> $uid
 		), -1, true, $tids);
 
 		$this->my_alerts($sip, $tids);
@@ -1038,12 +852,12 @@ class OUGC_ShowInPortal
 			return false;
 		}
 
-		if (!is_array($pm))
+		if(!is_array($pm))
 		{
 			return false;
 		}
 
-		if (!$pm['subject'] ||!$pm['message'] || (!$pm['receivepms'] && !$admin_override))
+		if(!$pm['subject'] ||!$pm['message'] || (!$pm['receivepms'] && !$admin_override))
 		{
 			return false;
 		}
