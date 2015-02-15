@@ -52,6 +52,7 @@ else
 	$plugins->add_hook('newreply_end', 'ougc_showinportal_newthread_end');
 	$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
 	$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
+	$plugins->add_hook('xmlhttp_update_post', 'ougc_showinportal_xmlhttp');
 
 	// My Alerts
 	$plugins->add_hook('myalerts_load_lang', array('OUGC_ShowInPortal', 'lang_load'));
@@ -90,8 +91,8 @@ function ougc_showinportal_info()
 		'website'		=> 'http://omarg.me',
 		'author'		=> 'Omar G.',
 		'authorsite'	=> 'http://omarg.me',
-		'version'		=> '1.7',
-		'versioncode'	=> 1700,
+		'version'		=> '1.8',
+		'versioncode'	=> 1800,
 		'compatibility'	=> '18*',
 		'myalerts'		=> 105,
 		'pl'			=> array(
@@ -575,6 +576,14 @@ function ougc_showinportal_postbit(&$post)
 	}
 
 	$post['message'] = preg_replace('#'.preg_quote($settings['ougc_showinportal_tag']).'#', '', $post['message']);
+}
+
+// AJAX tricks
+function ougc_showinportal_xmlhttp()
+{
+	global $post;
+
+	ougc_showinportal_postbit($post);
 }
 
 // Alter portal behavior
