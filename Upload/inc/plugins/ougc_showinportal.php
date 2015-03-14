@@ -52,6 +52,7 @@ else
 	$plugins->add_hook('newreply_end', 'ougc_showinportal_newthread_end');
 	$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
 	$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
+	$plugins->add_hook('syndication_start', 'ougc_showinportal_syndication');
 	$plugins->add_hook('xmlhttp_update_post', 'ougc_showinportal_xmlhttp');
 
 	// My Alerts
@@ -586,7 +587,7 @@ function ougc_showinportal_xmlhttp()
 	ougc_showinportal_postbit($post);
 }
 
-// Alter portal behavior
+// Alter portal behaviour
 function ougc_showinportal_portal()
 {
 	global $db, $settings;
@@ -617,6 +618,30 @@ function ougc_showinportal_portal()
 
 		$plugins->add_hook('portal_announcement', create_function('', 'global $announcement;	ougc_showinportal_cutoff($announcement[\'message\'], $announcement[\'fid\'], $announcement[\'tid\']);'));
 	}
+}
+
+// Alter syndication behaviour
+function ougc_showinportal_syndication()
+{
+	global $mybb;
+
+	if(!($mybb->get_input('portal') && $mybb->settings['portal']))
+	{
+		return;
+	}
+
+	control_object($GLOBALS['db'], '
+		function simple_select($table, $fields="*", $conditions="", $options=array())
+		{
+			if($table == "threads" && strpos($fields, \'subject, tid, dateline\') !== false)
+			{
+				$conditions = strtr($conditions, array(
+					\'visible\' => \'showinportal=\\\'1\\\' AND visible\'
+				));
+			}
+			return parent::simple_select($table, $fields, $conditions, $options);
+		}
+	');
 }
 
 // Remove the cutoff mycode
