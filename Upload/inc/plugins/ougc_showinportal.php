@@ -95,6 +95,7 @@ function ougc_showinportal_info()
 		'version'		=> '1.8',
 		'versioncode'	=> 1800,
 		'compatibility'	=> '18*',
+		'codename'		=> 'ougc_showinportal',
 		'myalerts'		=> 105,
 		'pl'			=> array(
 			'version'	=> 12,
@@ -426,8 +427,10 @@ function ougc_showinportal_moderation_custom_do($tids, $sip)
 	switch($sip)
 	{
 		case 1:
+			$showinportal->thread_update(1, $tids);
+			break;
 		case 2:
-			$showinportal->thread_update($sip, $tids);
+			$showinportal->thread_update(0, $tids);
 			break;
 		case 3:
 			global $db;
@@ -544,15 +547,20 @@ function ougc_showinportal_showthread_end()
 // Validate reply input
 function ougc_showinportal_post_insert_post(&$args)
 {
-	global $showinportal;
+	global $mybb, $showinportal;
+
+	if(!$showinportal->can_moderate($thread['fid']))
+	{
+		return;
+	}
 
 	$thread = get_thread($args->data['tid']);
 
-	if($thread['showinportal'] && !$args->data['modoptions']['showinportal'])
+	if($thread['showinportal'] && empty($args->data['modoptions']['showinportal']))
 	{
 		$showinportal->thread_update(0, $thread['tid']);
 	}
-	if(!$thread['showinportal'] && $args->data['modoptions']['showinportal'])
+	if(!$thread['showinportal'] && isset($args->data['modoptions']['showinportal']))
 	{
 		$showinportal->thread_update(1, $thread['tid']);
 	}
