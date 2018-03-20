@@ -1,4 +1,4 @@
-[![Omar G.](http://omarg.me/public/images/logo.png "Omar G. MyBB Page")](http://omarg.me/mybb "Omar G. MyBB Page")
+[![Omar G.](http://omarg.me/cache/images/logo.png "Omar G. MyBB Page")](http://omarg.me/page?mybb "Omar G. MyBB Page")
 
 ## OUGC Show In Portal
 Choose what threads to show in portal while creating / editing.

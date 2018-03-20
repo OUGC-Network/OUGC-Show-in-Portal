@@ -99,7 +99,7 @@ function ougc_showinportal_info()
 		'myalerts'		=> 105,
 		'pl'			=> array(
 			'version'	=> 12,
-			'url'		=> 'http://mods.mybb.com/view/pluginlibrary'
+			'url'		=> 'https://community.mybb.com/mods.php?action=view&pid=573'
 		)
 	);
 }
