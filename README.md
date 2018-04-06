@@ -32,3 +32,5 @@ Please visit [MyBB Plugins](http://forums.mybb-plugins.com/Forum-Free-Plugins--2
 Remember those are free releases developed on my personal free time let it be because I like it or because of customer's requests.
 
 Thanks for downloading and using my plugins, I really appreciate it!
+
+[![Analytics](https://ga-beacon.appspot.com/UA-54127252-4/OUGC-Show-in-Portal/README?flat&useReferer)](https://github.com/igrigorik/ga-beacon)
