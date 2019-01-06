@@ -4,11 +4,11 @@
  *
  *	OUGC Show in Portal plugin (/inc/plugins/ougc_showinportal.php)
  *	Author: Omar Gonzalez
- *	Copyright: © 2012-2014 Omar Gonzalez
+ *	Copyright: © 2012-2019 Omar Gonzalez
  *
  *	Website: http://omarg.me
  *
- *	Choose what threads to show in portal while creating / editing.
+ *	Allows users to choose what threads to display inside the portal system.
  *
  ***************************************************************************
 
@@ -30,53 +30,6 @@
 // Die if IN_MYBB is not defined, for security reasons.
 defined('IN_MYBB') or die('Direct initialization of this file is not allowed.');
 
-// Run/Add Hooks
-if(defined('IN_ADMINCP'))
-{
-	$plugins->add_hook('admin_config_settings_start', array('OUGC_ShowInPortal', 'lang_load'));
-	$plugins->add_hook('admin_style_templates_set', array('OUGC_ShowInPortal', 'lang_load'));
-	$plugins->add_hook('admin_config_settings_change', array('OUGC_ShowInPortal', 'lang_load'));
-	$plugins->add_hook('admin_formcontainer_end', 'ougc_showinportal_modtools');
-	$plugins->add_hook('admin_config_mod_tools_add_thread_tool_commit', 'ougc_showinportal_modtools_commit');
-	$plugins->add_hook('admin_config_mod_tools_edit_thread_tool_commit', 'ougc_showinportal_modtools_commit');
-}
-else
-{
-	global $settings;
-
-	$plugins->add_hook('moderation_start', 'ougc_showinportal_moderation');
-	$plugins->add_hook('newthread_end', 'ougc_showinportal_newthread_end');
-	$plugins->add_hook('datahandler_post_insert_thread', 'ougc_showinportal_insert_thread');
-	$plugins->add_hook('showthread_end', 'ougc_showinportal_showthread_end');
-	$plugins->add_hook('datahandler_post_insert_post', 'ougc_showinportal_post_insert_post');
-	$plugins->add_hook('newreply_end', 'ougc_showinportal_newthread_end');
-	$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
-	$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
-	$plugins->add_hook('syndication_start', 'ougc_showinportal_syndication');
-	$plugins->add_hook('xmlhttp_update_post', 'ougc_showinportal_xmlhttp');
-
-	// My Alerts
-	$plugins->add_hook('myalerts_load_lang', array('OUGC_ShowInPortal', 'lang_load'));
-	$plugins->add_hook('misc_help_helpdoc_start', 'ougc_showinportal_myalerts_helpdoc');
-	$plugins->add_hook('myalerts_alerts_output_end', 'ougc_showinportal_myalerts_output');
-
-	if(in_array(THIS_SCRIPT, array('forumdisplay.php', 'showthread.php', 'newthread.php', 'newreply.php')))
-	{
-		global $templatelist;
-
-		if(!isset($templatelist))
-		{
-			$templatelist = '';
-		}
-		else
-		{
-			$templatelist .= ',';
-		}
-
-		$templatelist .= 'ougcshowinportal_input';
-	}
-}
-
 // PLUGINLIBRARY
 defined('PLUGINLIBRARY') or define('PLUGINLIBRARY', MYBB_ROOT.'inc/plugins/pluginlibrary.php');
 
@@ -89,16 +42,16 @@ function ougc_showinportal_info()
 	return array(
 		'name'			=> 'OUGC Show in Portal',
 		'description'	=> $lang->setting_group_ougc_showinportal_desc,
-		'website'		=> 'http://omarg.me',
+		'website'		=> 'https://omarg.me/thread?public/plugins/mybb-ougc-show-in-portal',
 		'author'		=> 'Omar G.',
 		'authorsite'	=> 'http://omarg.me',
-		'version'		=> '1.8',
-		'versioncode'	=> 1800,
+		'version'		=> '1.8.19',
+		'versioncode'	=> 1819,
 		'compatibility'	=> '18*',
 		'codename'		=> 'ougc_showinportal',
-		'myalerts'		=> 105,
+		'myalerts'		=> '2.0.4',
 		'pl'			=> array(
-			'version'	=> 12,
+			'version'	=> 13,
 			'url'		=> 'https://community.mybb.com/mods.php?action=view&pid=573'
 		)
 	);
@@ -131,6 +84,12 @@ function ougc_showinportal_activate()
 		   'optionscode'	=> 'text',
 			'value'			=>	'[!--more--]',
 		),
+		'pm'	=> array(
+		   'title'			=> $lang->setting_ougc_showinportal_sendpm,
+		   'description'	=> $lang->setting_ougc_showinportal_sendpm_desc,
+		   'optionscode'	=> 'yesno',
+			'value'			=>	0,
+		),
 		'myalerts'	=> array(
 		   'title'			=> $lang->setting_ougc_showinportal_myalerts,
 		   'description'	=> $lang->setting_ougc_showinportal_myalerts_desc,
@@ -140,14 +99,33 @@ function ougc_showinportal_activate()
 	));
 
 	// Add template group
-	$PL->templates('ougcshowinportal', '<lang:setting_group_ougc_showinportal>', array(
-		'input'		=> '<br /><label><input type="checkbox" class="checkbox" name="{$name}" value="1"{$checked} />&nbsp;{$message}</label>'
+	$PL->templates('ougcshowinportal', 'OUGC Show in Portal', array(
+		'input'		=> '{$br_quickreply}<label><input type="checkbox" class="checkbox" name="{$name}" value="1"{$checked} />&nbsp;{$message}</label>{$br}'
 	));
 
 	// Modify templates
 	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
-	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('stick_thread}</label>').'#', 'stick_thread}</label><!--OUGC_SHOWINPORTAL-->');
+	find_replace_templatesets('editpost_postoptions', '#'.preg_quote('{$disablesmilies}').'#', '{$disablesmilies}<!--OUGC_SHOWINPORTAL-->');
+	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
 	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
+
+	// MyAlerts
+	if(class_exists('MybbStuff_MyAlerts_AlertTypeManager'))
+	{
+		global $db;
+
+		$alertTypeManager or $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
+
+		$alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+
+		$alertType = new MybbStuff_MyAlerts_Entity_AlertType();
+
+		$alertType->setCode('ougc_showinportal');
+		$alertType->setEnabled(true);
+		$alertType->setCanBeUserDisabled(true);
+
+		$alertTypeManager->add($alertType);
+	}
 
 	// Insert/update version into cache
 	$plugins = $cache->read('ougc_plugins');
@@ -182,10 +160,23 @@ function ougc_showinportal_deactivate($rebuilt=true)
 
 	// Revert template edits
 	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
+	find_replace_templatesets('editpost_postoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('forumdisplay_inlinemoderation', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('showthread_moderationoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
+
+	// MyAlerts
+	if(class_exists('MybbStuff_MyAlerts_AlertTypeManager'))
+	{
+		global $db, $cache;
+
+		$alertTypeManager or $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
+
+		$alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+
+		$alertTypeManager->deleteByCode('ougc_showinportal');
+	}
 }
 
 // _install() routine
@@ -401,7 +392,7 @@ function ougc_showinportal_moderation_custom()
 	}
 
 	control_object($custommod, '
-		function execute_thread_moderation($thread_options, $tids)
+		function execute_thread_moderation($thread_options=array(), $tids=array())
 		{
 			if(!$thread_options[\'deletethread\'])
 			{
@@ -455,47 +446,6 @@ function ougc_showinportal_moderation_custom_do($tids, $sip)
 }
 // Took from xThreads END
 
-// Insert plugin variable at new thread
-function ougc_showinportal_newthread_end()
-{
-	global $modoptions;
-
-	if(!isset($modoptions) || my_strpos($modoptions, '<!--OUGC_SHOWINPORTAL-->') === false)
-	{
-		return;
-	}
-
-	global $showinportal, $mybb, $fid;
-
-	if(!$showinportal->can_moderate($fid))
-	{
-		return;
-	}
-
-	global $templates, $lang, $thread;
-	$showinportal->lang_load();
-
-	// Figure out if checked
-	if(THIS_SCRIPT == 'newreply.php' && !isset($mybb->input['modoptions']) && !isset($mybb->input['modoptions']['showinportal']) && isset($thread['showinportal']))
-	{
-		$mybb->input['modoptions']['showinportal'] = (int)$thread['showinportal'];
-	}
-	$sip = (int)$mybb->input['modoptions']['showinportal'];
-
-	$checked = '';
-	if(!empty($sip))
-	{
-		$checked = ' checked="checked"';
-	}
-
-	// Show the option
-	$name = 'modoptions[showinportal]';
-	$message = $lang->ougc_showinportal_input_newthread;
-	eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
-
-	$modoptions = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $modoptions);
-}
-
 // Validate thread input
 function ougc_showinportal_insert_thread(&$dh)
 {
@@ -516,38 +466,10 @@ function ougc_showinportal_insert_thread(&$dh)
 	}
 }
 
-// Quickreply moderation
-function ougc_showinportal_showthread_end()
-{
-	global $showinportal, $settings, $thread;
-
-	if(!$showinportal->can_moderate($thread['fid']))
-	{
-		return;
-	}
-
-	global $templates, $lang, $quickreply, $moderationoptions;
-	$showinportal->lang_load();
-
-	// Figure out if checked
-	$checked = '';
-	if($thread['showinportal'])
-	{
-		$checked = ' checked="checked"';
-	}
-
-	// Show the option
-	$name = 'modoptions[showinportal]';
-	$message = $lang->ougc_showinportal_input_quickreply;
-	eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
-
-	$quickreply = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $quickreply);
-}
-
 // Validate reply input
 function ougc_showinportal_post_insert_post(&$args)
 {
-	global $mybb, $showinportal;
+	global $mybb, $showinportal, $plugins;
 
 	if(!$showinportal->can_moderate($thread['fid']))
 	{
@@ -556,11 +478,25 @@ function ougc_showinportal_post_insert_post(&$args)
 
 	$thread = get_thread($args->data['tid']);
 
-	if($thread['showinportal'] && empty($args->data['modoptions']['showinportal']))
+	if($plugins->current_hook == 'datahandler_post_update')
+	{
+		if(THIS_SCRIPT == 'xmlhttp.php')
+		{
+			return false;
+		}
+
+		$options = $mybb->get_input('modoptions', MYBB::INPUT_ARRAY);
+	}
+	else
+	{
+		$options = $args->data['modoptions'];
+	}
+
+	if($thread['showinportal'] && empty($options['showinportal']))
 	{
 		$showinportal->thread_update(0, $thread['tid']);
 	}
-	if(!$thread['showinportal'] && isset($args->data['modoptions']['showinportal']))
+	if(!$thread['showinportal'] && !empty($options['showinportal']))
 	{
 		$showinportal->thread_update(1, $thread['tid']);
 	}
@@ -735,68 +671,67 @@ if(!function_exists('control_object'))
 	}
 }
 
-// MyAlerts: Help Documents
-function ougc_showinportal_myalerts_helpdoc()
-{
-	global $helpdoc, $lang, $settings;
-
-	if($helpdoc['name'] != $lang->myalerts_help_alert_types)
-	{
-        return;
-    }
-
-    if($settings['ougc_showinportal_myalerts'])
-    {
-		global $showinportal;
-		$showinportal->lang_load();
-
-        $helpdoc['document'] .= $lang->ougc_showinportal_myalerts_helpdoc;
-    }
-}
-
-// MyAlerts: Output
-function ougc_showinportal_myalerts_output(&$args)
-{
-	global $mybb;
-
-	if($args['alert_type'] != 'ougc_showinportal' || !$mybb->user['myalerts_settings']['ougc_showinportal'])
-	{
-		return;
-    }
-
-	global $showinportal, $lang;
-	$showinportal->lang_load();
-
-	$lang_var = 'ougc_showinportal_myalerts_showinportal';
-	if(!$args['content'][0])
-	{
-		$lang_var = 'ougc_showinportal_myalerts_unshowinportal';
-	}
-
-	$thread = get_thread($args['tid']);
-
-	if(!$thread)
-	{
-		return;
-	}
-
-	$args['threadLink'] = $mybb->settings['bburl'].'/'.get_thread_link($thread['tid']);
-	$args['message'] = $lang->sprintf($lang->{$lang_var}, $args['user'], $args['threadLink'], htmlspecialchars_uni($thread['subject']), $args['dateline']);
-	$args['rowType'] = 'showinportal';
-}
-
 // Magicfull
 class OUGC_ShowInPortal
 {
+	public $status_display = 1;
+
+	public $status_remove = 0;
+
+	public $myalerts = false;
+
 	// Build class
 	function __construct()
 	{
-		global $settings;
+		global $mybb, $plugins;
 
-		if($settings['ougc_showinportal_myalerts'])
+		// Run/Add Hooks
+		if(defined('IN_ADMINCP'))
 		{
-			$settings['myalerts_alert_ougc_showinportal'] = 1;
+			$plugins->add_hook('admin_config_settings_start', array($this, 'lang_load'));
+			$plugins->add_hook('admin_style_templates_set', array($this, 'lang_load'));
+			$plugins->add_hook('admin_config_settings_change', array($this, 'lang_load'));
+			$plugins->add_hook('admin_formcontainer_end', 'ougc_showinportal_modtools');
+			$plugins->add_hook('admin_config_mod_tools_add_thread_tool_commit', 'ougc_showinportal_modtools_commit');
+			$plugins->add_hook('admin_config_mod_tools_edit_thread_tool_commit', 'ougc_showinportal_modtools_commit');
 		}
+		else
+		{
+			$plugins->add_hook('newthread_end', array($this, 'input_display'));
+			$plugins->add_hook('showthread_end', array($this, 'input_display'));
+			$plugins->add_hook('newreply_end', array($this, 'input_display'));
+			$plugins->add_hook('editpost_end', array($this, 'input_display'));
+			$plugins->add_hook('moderation_start', 'ougc_showinportal_moderation');
+			$plugins->add_hook('datahandler_post_insert_thread', 'ougc_showinportal_insert_thread');
+			$plugins->add_hook('datahandler_post_insert_post', 'ougc_showinportal_post_insert_post');
+			//datahandler_post_insert_merge
+			$plugins->add_hook('datahandler_post_update', 'ougc_showinportal_post_insert_post');
+			$plugins->add_hook('postbit', 'ougc_showinportal_postbit');
+			$plugins->add_hook('portal_start', 'ougc_showinportal_portal');
+			$plugins->add_hook('syndication_start', 'ougc_showinportal_syndication');
+			$plugins->add_hook('xmlhttp_update_post', 'ougc_showinportal_xmlhttp');
+
+			// My Alerts
+			$plugins->add_hook('global_start', array($this, 'hook_global_start'));
+
+			if(in_array(THIS_SCRIPT, array('forumdisplay.php', 'showthread.php', 'newthread.php', 'newreply.php', 'editpost.php')))
+			{
+				global $templatelist;
+
+				if(!isset($templatelist))
+				{
+					$templatelist = '';
+				}
+				else
+				{
+					$templatelist .= ',';
+				}
+
+				$templatelist .= 'ougcshowinportal_input';
+			}
+		}
+
+		$this->myalerts = $mybb->settings['ougc_showinportal_myalerts'] && $mybb->cache->cache['plugins']['active']['myalerts'];
 	}
 
 	// Loads language strings
@@ -805,12 +740,6 @@ class OUGC_ShowInPortal
 		global $lang;
 
 		isset($lang->setting_group_ougc_showinportal) or $lang->load('ougc_showinportal');
-
-		// MyAlerts, ugly bitch
-		if(isset($lang->ougc_showinportal_myalerts_setting))
-		{
-			$lang->myalerts_setting_ougc_showinportal = $lang->ougc_showinportal_myalerts_setting;
-		}
 	}
 
 	// $PL->is_member() helper
@@ -889,7 +818,7 @@ class OUGC_ShowInPortal
 	{
 		global $mybb;
 
-		if(!$mybb->settings['enablepms'])
+		if(!$mybb->settings['enablepms'] || !$mybb->settings['ougc_showinportal_pm'])
 		{
 			return false;
 		}
@@ -963,44 +892,230 @@ class OUGC_ShowInPortal
 	}
 
 	// MyAlerts support
-	function my_alerts($sip, $tids)
+	function my_alerts($status, $tids)
 	{
-		global $mybb;
+		global $lang, $mybb, $alertType, $db;
+		$this->lang_load(true);
 
-		if(!$mybb->settings['ougc_showinportal_myalerts'])
+		if(!$this->myalerts)
 		{
-			return;
+			return false;
 		}
 
-		$plugins = (array)$mybb->cache->read('euantor_plugins');
+		$alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('ougc_showinportal');
 
-		if(empty($plugins['myalerts']))
+		if(!$alertType)
 		{
-			return;
+			return false;
 		}
 
-		$info = ougc_showinportal_info();
+		$tids = implode("','", $tids);
 
-		if(str_replace('.', '', $plugins['myalerts']['version']) < $info['myalerts'])
-		{
-			return;
-		}
+		$threads_cache = array();
 
-		global $Alerts;
-
-		if(!(!empty($Alerts) && $Alerts instanceof Alerts))
-		{
-			return;
-		}
-
-		global $db;
-
-		// Get list of users
-		$query = $db->simple_select('threads', 'uid, tid', 'uid!=\'0\' AND uid!=\''.(int)$mybb->user['uid'].'\' AND tid IN (\''.implode('\',\'', array_filter(array_map('intval', $tids))).'\')');
+		$query = $db->simple_select('threads', 'uid, tid', "tid IN ('{$tids}') AND visible='1'"); // visibility checks?
 		while($thread = $db->fetch_array($query))
 		{
-			$Alerts->addAlert($thread['uid'], 'ougc_showinportal', $thread['tid'], $mybb->user['uid'], array($sip));
+			$threads_cache[(int)$thread['tid']] = (int)$thread['uid'];
+		}
+
+		if($alertType == null || !$alertType->getEnabled())
+		{
+			return false;
+		}
+
+		foreach($threads_cache as $tid => $uid)
+		{
+			// Check if already alerted
+			$query = $db->simple_select('alerts', '*', "object_id='{$tid}' AND uid='{$uid}' AND unread=1 AND alert_type_id='{$alertType->getId()}'");
+
+			if($db->fetch_field($query, 'id'))
+			{
+				return false;
+			}
+
+			$alert = new MybbStuff_MyAlerts_Entity_Alert($uid, $alertType, $tid);
+
+			$alert->setExtraDetails(
+				array(
+					'type'	=> $status ? 'display' : 'remove'
+				)
+			);
+
+			MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+		}
+	}
+
+	// Insert plugin variable at new thread
+	function input_display()
+	{
+		global $plugins, $templates, $lang, $thread, $post, $mybb, $fid;
+
+		$modoptions = &$GLOBALS['modoptions'];
+		$lang_var = 'ougc_showinportal_input_newthread';
+
+		$br = '<br />';
+		$br_quickreply = '';
+
+		if($plugins->current_hook == 'editpost_end' && $thread['firstpost'] == $mybb->get_input('pid', MYBB::INPUT_INT))
+		{
+			$modoptions = &$GLOBALS['postoptions'];
+
+			$br = '';
+			$br_quickreply = '<br />';
+		}
+
+		if($plugins->current_hook == 'showthread_end')
+		{
+			$modoptions = &$GLOBALS['quickreply'];
+			$lang_var = 'ougc_showinportal_input_quickreply';
+
+			$br = '';
+			$br_quickreply = '<br />';
+		}
+
+		if(!isset($modoptions) || my_strpos($modoptions, '<!--OUGC_SHOWINPORTAL-->') === false)
+		{
+			return;
+		}
+
+		if(!$this->can_moderate($fid))
+		{
+			return;
+		}
+
+		$this->lang_load();
+
+		// Figure out if checked
+		$display_status = $this->status_remove; // newthread_end
+
+		$options = $mybb->get_input('modoptions', MYBB::INPUT_ARRAY);
+
+		if($mybb->request_method == 'post')
+		{
+			$display_status = $options['showinportal'];
+		}
+		else
+		{
+			switch($plugins->current_hook)
+			{
+				case 'showthread_end':
+				case 'editpost_end':
+				case 'newreply_end':
+					$display_status = (int)$thread['showinportal'];
+					break;
+			}
+		}
+
+		$checked = '';
+
+		if(!empty($display_status))
+		{
+			$checked = ' checked="checked"';
+		}
+
+		// Show the option
+		$name = 'modoptions[showinportal]';
+		$message = $lang->{$lang_var};
+		eval('$ougc_showinportal = "'.$templates->get('ougcshowinportal_input').'";');
+
+		$modoptions = str_replace('<!--OUGC_SHOWINPORTAL-->', $ougc_showinportal, $modoptions);
+	}
+
+	// Hook: global_start
+	function hook_global_start()
+	{
+		if(class_exists('MybbStuff_MyAlerts_AlertFormatterManager'))
+		{
+			global $mybb, $lang, $showinportal;
+			$showinportal->lang_load();
+
+			$formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::getInstance();
+
+			$formatterManager or $formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::createInstance($mybb, $lang);
+
+			$formatterManager->registerFormatter(new OUGC_ShowInPortal_MyAlerts_Formatter($mybb, $lang, 'ougc_showinportal'));
 		}
 	}
 }
+
+if(class_exists('MybbStuff_MyAlerts_Formatter_AbstractFormatter'))
+{
+	class OUGC_ShowInPortal_MyAlerts_Formatter extends MybbStuff_MyAlerts_Formatter_AbstractFormatter
+	{
+		public function init()
+		{
+			global $showinportal;
+			$showinportal->lang_load();
+		}
+
+		/**
+		 * Format an alert into it's output string to be used in both the main alerts listing page and the popup.
+		 *
+		 * @param MybbStuff_MyAlerts_Entity_Alert $alert The alert to format.
+		 *
+		 * @return string The formatted alert string.
+		 */
+		public function formatAlert(MybbStuff_MyAlerts_Entity_Alert $alert, array $outputAlert)
+		{
+			global $showinportal, $templates, $parser, $mybb;
+
+			$Details = $alert->toArray();
+			$ExtraDetails = $alert->getExtraDetails();
+
+			$FromUser = $alert->getFromUser();
+
+			$lang_var = 'ougc_showinportal_myalerts_display';
+			if($ExtraDetails['type'] == 'remove')
+			{
+				$lang_var = 'ougc_showinportal_myalerts_removed';
+			}
+
+			$subject = '';
+			if($thread = get_thread($Details['object_id']))
+			{
+				require_once MYBB_ROOT.'inc/class_parser.php';
+				($parser instanceof PostDataHandler) or $parser = new postParser;
+
+				$thread['threadprefix'] = $thread['displayprefix'] = '';
+				if($thread['prefix'])
+				{
+					$threadprefix = build_prefixes($thread['prefix']);
+
+					if(!empty($threadprefix['prefix']))
+					{
+						$thread['threadprefix'] = htmlspecialchars_uni($threadprefix['prefix']).'&nbsp;';
+						$thread['displayprefix'] = $threadprefix['displaystyle'].'&nbsp;';
+					}
+				}
+
+				$subject = $parser->parse_badwords($thread['subject']);
+				$subject = $thread['displayprefix'].htmlspecialchars_uni($thread['subject']);
+			}
+
+			$username = format_name($mybb->user['username'], $mybb->user['usergroup'], $mybb->user['displaygroup']);
+
+			return $this->lang->sprintf($this->lang->{$lang_var}, $username, $outputAlert['from_user'], $subject);
+		}
+
+		/**
+		 * Build a link to an alert's content so that the system can redirect to it.
+		 *
+		 * @param MybbStuff_MyAlerts_Entity_Alert $alert The alert to build the link for.
+		 *
+		 * @return string The built alert, preferably an absolute link.
+		 */
+		public function buildShowLink(MybbStuff_MyAlerts_Entity_Alert $alert)
+		{
+			global $settings;
+
+			$Details = $alert->toArray();
+			$ExtraDetails = $alert->getExtraDetails();
+
+			return $settings['bburl'].'/'.get_thread_link($Details['object_id']);
+		}
+	}
+}
+
 $GLOBALS['showinportal'] = new OUGC_ShowInPortal;
+

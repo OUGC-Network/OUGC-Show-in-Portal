@@ -4,11 +4,11 @@
  *
  *	OUGC Show in Portal plugin (/inc/languages/english/ougc_showinportal.lang.php)
  *	Author: Omar Gonzalez
- *	Copyright: © 2012-2014 Omar Gonzalez
+ *	Copyright: © 2012-2019 Omar Gonzalez
  *
  *	Website: http://omarg.me
  *
- *	Choose what threads to show in portal while creating / editing.
+ *	Allows users to choose what threads to display inside the portal system.
  *
  ***************************************************************************
 
@@ -31,7 +31,7 @@
 $l['setting_group_ougc_showinportal'] = 'OUGC Show in Portal';
 
 // Newthread/Newreply
-$l['ougc_showinportal_input_newthread'] = '<strong>Portal Thread:</strong> show this thread in the portal.';
+$l['ougc_showinportal_input_newthread'] = '<strong>Portal Thread:</strong> Show this thread in the portal.';
 $l['ougc_showinportal_input_quickreply'] = '<strong>Portal Thread</strong>';
 
 // MyCode lang
@@ -47,19 +47,15 @@ $l['ougc_showinportal_readmore_mycode'] = '
 
 // Send PM
 $l['ougc_showinportal_pm_subject'] = 'Your thread has been added to the portal.';
-$l['ougc_showinportal_pm_message'] = 'Hi! This PM is an automatic notification to let you know that one or more of your threads have been added to the portal page by one or more moderators / administrators.
+$l['ougc_showinportal_pm_message'] = 'Hi! This PM is an automatic notification to notify you that one of your threads have been added to the portal page by a moderators.
 
-Cheers, {2}.';
+Greetings, {1}.';
 $l['ougc_showinportal_pm_subject_removed'] = 'Your thread has been removed from the portal.';
-$l['ougc_showinportal_pm_message_removed'] = 'Hi! This PM is an automatic notification to let you know that one or more of your threads have been removed from the portal page by one or more moderators / administrators.
+$l['ougc_showinportal_pm_message_removed'] = 'Hi! This PM is an automatic notification to notify you that one of your threads have been removed from the portal page by a moderators.
 
-Cheers, {2}.';
+Greetings, {1}.';
 
 // MyAlerts
-$l['ougc_showinportal_myalerts_showinportal'] = '{1} added your thread "<a href="{2}">{3}</a>" to the portal.';
-$l['ougc_showinportal_myalerts_unshowinportal'] = '{1} removed your thread "<a href="{2}">{3}</a>" from the portal.';
-$l['ougc_showinportal_myalerts_setting'] = 'Receive alert when one your threads are make (un)visible in the portal?';
-$l['ougc_showinportal_myalerts_helpdoc'] = '<strong>Show In Portal</strong>
-<p>
-	This alert type is received whenever one moderator makes your threads (un)visible in the portal.
-</p>';
+$l['ougc_showinportal_myalerts_display'] = '{1}, your thread "{3}" was added to the portal by {2}.';
+$l['ougc_showinportal_myalerts_removed'] = '{1}, your thread "{3}" was removed from the portal by {2}.';
+$l['myalerts_setting_ougc_showinportal'] = 'Receive alerts when my threads are added or removed from the portal.';
