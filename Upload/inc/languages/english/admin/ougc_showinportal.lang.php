@@ -8,7 +8,7 @@
  *
  *	Website: http://omarg.me
  *
- *	Allows users to choose what threads to display inside the portal system.
+ *	Allows moderators to choose what threads to display inside the portal system.
  *
  ***************************************************************************
 
@@ -29,7 +29,7 @@
 
 // Plugin API
 $l['setting_group_ougc_showinportal'] = 'OUGC Show in Portal';
-$l['setting_group_ougc_showinportal_desc'] = 'Allows users to choose what threads to display inside the portal system.';
+$l['setting_group_ougc_showinportal_desc'] = 'Allows moderators to choose what threads to display inside the portal system.';
 
 // Settings
 $l['setting_ougc_showinportal_groups'] = 'Allowed Groups';

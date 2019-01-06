@@ -8,7 +8,7 @@
  *
  *	Website: http://omarg.me
  *
- *	Allows users to choose what threads to display inside the portal system.
+ *	Allows moderators to choose what threads to display inside the portal system.
  *
  ***************************************************************************
 
