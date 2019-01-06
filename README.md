@@ -1,7 +1,7 @@
 [![Omar G.](http://omarg.me/cache/images/logo.png "Omar G. MyBB Page")](http://omarg.me/page?mybb "Omar G. MyBB Page")
 
 ## OUGC Show In Portal
-Choose what threads to show in portal while creating / editing.
+Allows moderators to choose what threads to display inside the portal system.
 
 ***
 
