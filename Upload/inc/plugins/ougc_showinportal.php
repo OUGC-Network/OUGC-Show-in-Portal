@@ -84,6 +84,12 @@ function ougc_showinportal_activate()
 		   'optionscode'	=> 'text',
 			'value'			=>	'[!--more--]',
 		),
+		'tag_rss'		=> array(
+		   'title'			=> $lang->setting_ougc_showinportal_tag_rss,
+		   'description'	=> $lang->setting_ougc_showinportal_tag_rss_desc,
+		   'optionscode'	=> 'yesno',
+			'value'			=>	1,
+		),
 		'pm'	=> array(
 		   'title'			=> $lang->setting_ougc_showinportal_sendpm,
 		   'description'	=> $lang->setting_ougc_showinportal_sendpm_desc,
@@ -567,14 +573,14 @@ function ougc_showinportal_portal()
 // Alter syndication behaviour
 function ougc_showinportal_syndication()
 {
-	global $mybb;
+	global $mybb, $db, $plugins;
 
 	if(!($mybb->get_input('portal') && $mybb->settings['portal']))
 	{
 		return;
 	}
 
-	control_object($GLOBALS['db'], '
+	control_object($db, '
 		function simple_select($table, $fields="*", $conditions="", $options=array())
 		{
 			if($table == "threads" && strpos($fields, \'subject, tid, dateline\') !== false)
@@ -586,6 +592,12 @@ function ougc_showinportal_syndication()
 			return parent::simple_select($table, $fields, $conditions, $options);
 		}
 	');
+
+	// Replace MyCode with a "Read More..." kind of link
+	if(!empty($mybb->settings['ougc_showinportal_tag_rss']))
+	{
+		$plugins->add_hook('parse_message_start', create_function('&$message', 'global $post;	ougc_showinportal_cutoff($message, $post[\'fid\'], $post[\'tid\']);'));
+	}
 }
 
 // Remove the cutoff mycode
