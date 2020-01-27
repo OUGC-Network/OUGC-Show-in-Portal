@@ -1,4 +1,4 @@
-[![Omar G.](http://omarg.me/cache/images/logo.png "Omar G. MyBB Page")](http://omarg.me/page?mybb "Omar G. MyBB Page")
+[![OUGC Network](https://omargc.me/cache/images/logo.png "OUGC Network")](https://ougc.network/landing?mybb "OUGC Network")
 
 ## OUGC Show In Portal
 Allows moderators to choose what threads to display inside the portal system.
@@ -6,7 +6,7 @@ Allows moderators to choose what threads to display inside the portal system.
 ***
 
 ### Support
-Please visit [Omar G.](https://omarg.me/thread?public/plugins/mybb-ougc-show-in-portal "Visit Omar.G") for more information about this project.
+Please visit [OUGC Network](https://ougc.network/?landing=mybb "Visit OUGC Network") for more information about this project.
 
 ### Thank You!
 Remember this is a free release developed on free time, either for personal use or as custom requests.
