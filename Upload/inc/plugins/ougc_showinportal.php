@@ -6,7 +6,7 @@
  *	Author: Omar Gonzalez
  *	Copyright: © 2012-2019 Omar Gonzalez
  *
- *	Website: http://omarg.me
+ *	Website: https://ougc.network
  *
  *	Allows moderators to choose what threads to display inside the portal system.
  *
@@ -511,17 +511,10 @@ function ougc_showinportal_post_insert_post(&$args)
 // Remove MyCode from posts (only if visible in portal)
 function ougc_showinportal_postbit(&$post)
 {
-	global $thread, $plugins;
+	global $thread, $plugins, $showinportal, $settings;
 	$plugins->remove_hook('postbit', 'ougc_showinportal_postbit'); // we just need this to run once
 
-	if($thread['firstpost'] != $post['pid'] || !$thread['showinportal'])
-	{
-		return;
-	}
-
-	global $showinportal, $settings;
-
-	if(!$showinportal->can_moderate($thread['fid']))
+	if($thread['firstpost'] != $post['pid'] || !$thread['showinportal'] || empty($settings['ougc_showinportal_tag']))
 	{
 		return;
 	}
@@ -605,7 +598,7 @@ function ougc_showinportal_cutoff(&$message, $fid, $tid)
 {
 	global $settings;
 
-	if(!$message || !$settings['ougc_showinportal_tag'])
+	if(!$message || empty($settings['ougc_showinportal_tag']))
 	{
 		return;
 	}
@@ -1130,4 +1123,3 @@ if(class_exists('MybbStuff_MyAlerts_Formatter_AbstractFormatter'))
 }
 
 $GLOBALS['showinportal'] = new OUGC_ShowInPortal;
-
