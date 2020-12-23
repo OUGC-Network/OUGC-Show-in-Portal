@@ -6,7 +6,7 @@
  *	Author: Omar Gonzalez
  *	Copyright: © 2012-2019 Omar Gonzalez
  *
- *	Website: http://omarg.me
+ *	Website: https://ougc.network
  *
  *	Allows moderators to choose what threads to display inside the portal system.
  *
@@ -45,8 +45,8 @@ function ougc_showinportal_info()
 		'website'		=> 'https://ougc.network',
 		'author'		=> 'Omar G.',
 		'authorsite'	=> 'https://ougc.network',
-		'version'		=> '1.8.22',
-		'versioncode'	=> 1822,
+		'version'		=> '1.8.23',
+		'versioncode'	=> 1823,
 		'compatibility'	=> '18*',
 		'codename'		=> 'ougc_showinportal',
 		'myalerts'		=> '2.0.4',
@@ -83,6 +83,12 @@ function ougc_showinportal_activate()
 		   'description'	=> $lang->setting_ougc_showinportal_tag_desc,
 		   'optionscode'	=> 'text',
 			'value'			=>	'[!--more--]',
+		),
+		'tag_rss'		=> array(
+		   'title'			=> $lang->setting_ougc_showinportal_tag_rss,
+		   'description'	=> $lang->setting_ougc_showinportal_tag_rss_desc,
+		   'optionscode'	=> 'yesno',
+			'value'			=>	1,
 		),
 		'pm'	=> array(
 		   'title'			=> $lang->setting_ougc_showinportal_sendpm,
@@ -505,17 +511,10 @@ function ougc_showinportal_post_insert_post(&$args)
 // Remove MyCode from posts (only if visible in portal)
 function ougc_showinportal_postbit(&$post)
 {
-	global $thread, $plugins;
+	global $thread, $plugins, $showinportal, $settings;
 	$plugins->remove_hook('postbit', 'ougc_showinportal_postbit'); // we just need this to run once
 
-	if($thread['firstpost'] != $post['pid'] || !$thread['showinportal'])
-	{
-		return;
-	}
-
-	global $showinportal, $settings;
-
-	if(!$showinportal->can_moderate($thread['fid']))
+	if($thread['firstpost'] != $post['pid'] || !$thread['showinportal'] || empty($settings['ougc_showinportal_tag']))
 	{
 		return;
 	}
@@ -567,14 +566,14 @@ function ougc_showinportal_portal()
 // Alter syndication behaviour
 function ougc_showinportal_syndication()
 {
-	global $mybb;
+	global $mybb, $db, $plugins;
 
 	if(!($mybb->get_input('portal') && $mybb->settings['portal']))
 	{
 		return;
 	}
 
-	control_object($GLOBALS['db'], '
+	control_object($db, '
 		function simple_select($table, $fields="*", $conditions="", $options=array())
 		{
 			if($table == "threads" && strpos($fields, \'subject, tid, dateline\') !== false)
@@ -586,6 +585,12 @@ function ougc_showinportal_syndication()
 			return parent::simple_select($table, $fields, $conditions, $options);
 		}
 	');
+
+	// Replace MyCode with a "Read More..." kind of link
+	if(!empty($mybb->settings['ougc_showinportal_tag_rss']))
+	{
+		$plugins->add_hook('parse_message_start', create_function('&$message', 'global $post;	ougc_showinportal_cutoff($message, $post[\'fid\'], $post[\'tid\']);'));
+	}
 }
 
 // Remove the cutoff mycode
@@ -593,7 +598,7 @@ function ougc_showinportal_cutoff(&$message, $fid, $tid)
 {
 	global $settings;
 
-	if(!$message || !$settings['ougc_showinportal_tag'])
+	if(!$message || empty($settings['ougc_showinportal_tag']))
 	{
 		return;
 	}
@@ -1118,4 +1123,3 @@ if(class_exists('MybbStuff_MyAlerts_Formatter_AbstractFormatter'))
 }
 
 $GLOBALS['showinportal'] = new OUGC_ShowInPortal;
-
