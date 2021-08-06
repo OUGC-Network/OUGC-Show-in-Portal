@@ -486,7 +486,7 @@ function ougc_showinportal_post_insert_post(&$args)
 
 	if($plugins->current_hook == 'datahandler_post_update')
 	{
-		if(THIS_SCRIPT == 'xmlhttp.php')
+		if(THIS_SCRIPT == 'xmlhttp.php' || empty($args->first_post))
 		{
 			return false;
 		}
@@ -559,8 +559,16 @@ function ougc_showinportal_portal()
 	{
 		global $plugins;
 
-		$plugins->add_hook('portal_announcement', create_function('', 'global $announcement;	ougc_showinportal_cutoff($announcement[\'message\'], $announcement[\'fid\'], $announcement[\'tid\']);'));
+		$plugins->add_hook('portal_announcement', 'ougc_showinportal_portal_announcement');
 	}
+}
+
+// Cutoff announcement message
+function ougc_showinportal_portal_announcement()
+{
+	global $announcement;
+
+	ougc_showinportal_cutoff($announcement['message'], $announcement['fid'], $announcement['tid']);
 }
 
 // Alter syndication behaviour
@@ -589,8 +597,15 @@ function ougc_showinportal_syndication()
 	// Replace MyCode with a "Read More..." kind of link
 	if(!empty($mybb->settings['ougc_showinportal_tag_rss']))
 	{
-		$plugins->add_hook('parse_message_start', create_function('&$message', 'global $post;	ougc_showinportal_cutoff($message, $post[\'fid\'], $post[\'tid\']);'));
+		$plugins->add_hook('parse_message_start', 'ougc_showinportal_syndication_message');
 	}
+}
+
+function ougc_showinportal_syndication_message(&$message)
+{
+	global $post;
+
+	ougc_showinportal_cutoff($message, $post['fid'], $post['tid']);
 }
 
 // Remove the cutoff mycode
@@ -755,7 +770,7 @@ class OUGC_ShowInPortal
 
 		if($usergroup !== false)
 		{
-			$usergroup = array('usergroup' => (int)$usergroup);
+			$usergroup = array('usergroup' => (int)$usergroup, 'additionalgroups' => '');
 		}
 
 		return (bool)$PL->is_member($gids, $usergroup);
