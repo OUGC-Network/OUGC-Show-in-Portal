@@ -110,10 +110,10 @@ function ougc_showinportal_activate()
 	));
 
 	// Modify templates
-	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
+	/*require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
 	find_replace_templatesets('editpost_postoptions', '#'.preg_quote('{$disablesmilies}').'#', '{$disablesmilies}<!--OUGC_SHOWINPORTAL-->');
 	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
-	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
+	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');*/
 
 	// MyAlerts
 	if(class_exists('MybbStuff_MyAlerts_AlertTypeManager'))
@@ -165,12 +165,12 @@ function ougc_showinportal_deactivate($rebuilt=true)
 	ougc_showinportal_pl_check();
 
 	// Revert template edits
-	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
+	/*require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
 	find_replace_templatesets('editpost_postoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('newreply_modoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('showthread_quickreply', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
 	find_replace_templatesets('forumdisplay_inlinemoderation', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
-	find_replace_templatesets('showthread_moderationoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);
+	find_replace_templatesets('showthread_moderationoptions', '#'.preg_quote('<!--OUGC_SHOWINPORTAL-->').'#', '', 0);*/
 
 	// MyAlerts
 	if(class_exists('MybbStuff_MyAlerts_AlertTypeManager'))
