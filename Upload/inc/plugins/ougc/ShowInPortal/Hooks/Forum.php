@@ -383,6 +383,23 @@ function syndication_start()
         return;
     }
 
+    $forumID = $mybb->get_input('forumID', \MyBB::INPUT_INT);
+
+    if (getSetting('enableForumFilter') && $forumID) {
+        control_db(
+            'function simple_select($table, $fields = "*", $conditions = "", $options = array())
+    {
+        if ($table == "threads" && strpos($fields, "subject, tid, dateline") !== false) {
+            $conditions = strtr($conditions, array(
+                "visible" => "fid=\'' . $forumID . '\' AND visible"
+            ));
+        }
+        
+        return parent::simple_select($table, $fields, $conditions, $options);
+    }'
+        );
+    }
+
     control_db(
         'function simple_select($table, $fields = "*", $conditions = "", $options = array())
     {
