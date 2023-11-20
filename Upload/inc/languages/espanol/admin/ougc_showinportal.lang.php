@@ -44,7 +44,7 @@ $l = [
     'setting_ougc_showinportal_notifyByAlert' => 'Integrar MyAlerts',
     'setting_ougc_showinportal_notifyByAlert_desc' => 'Enviar una notificación por MyAlerts a los usuarios cuando uno de sus temas sea añadido o removido del portal.',
     'setting_ougc_showinportal_enableForumFilter' => 'Permitir filtrar foros',
-    'setting_ougc_showinportal_enableForumFilter_desc' => 'Activa esta opcion para permitir el filtrado por foro en el portal. Parametro de consulta es <i>forumID</i>, ejemplo: <code>/portal.php?forumID=2</code>',
+    'setting_ougc_showinportal_enableForumFilter_desc' => 'Activa esta opcion para permitir el filtrado por foro en el portal. Parametro de consulta es <i>forumID</i>, ejemplo: <code>./portal.php?forumID=2</code>',
     'ougc_showinportal_modtool' => 'Mostrar en portal',
     'ougc_showinportal_modtool_show' => 'Mostrar',
     'ougc_showinportal_modtool_remove' => 'Ocultar',

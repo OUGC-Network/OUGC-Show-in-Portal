@@ -122,20 +122,6 @@ function pluginActivate(): bool
         $PL->templates('ougcshowinportal', 'OUGC Show In Portal', $templates);
     }
 
-    // Modify templates
-    /*
-     * require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
-     *
-
-    find_replace_templatesets('editpost_postoptions', '#'.preg_quote('{$signature}').'#', '{$signature}<!--OUGC_SHOWINPORTAL-->');
-
-    find_replace_templatesets('newreply_modoptions', '#'.preg_quote('{$stickoption}').'#', '{$stickoption}<!--OUGC_SHOWINPORTAL-->');
-
-    find_replace_templatesets('newthread_postoptions', '#'.preg_quote('{$disablesmilies}').'#', '{$disablesmilies}<!--OUGC_SHOWINPORTAL-->');
-
-    find_replace_templatesets('showthread_quickreply', '#'.preg_quote('{$closeoption}').'#', '{$closeoption}<!--OUGC_SHOWINPORTAL-->');
-    */
-
     // MyAlerts
     if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
         global $db;

@@ -98,10 +98,10 @@ function admin_formcontainer_end()
         $lang->ougc_showinportal_modtool . ' <em>*</em>',
         '',
         $form->generate_select_box('showinportal', [
-            0 => $lang->no_change,
-            1 => $lang->ougc_showinportal_modtool_show,
-            2 => $lang->ougc_showinportal_modtool_remove,
-            3 => $lang->toggle
+            \ougc\ShowInPortal\Core\INPUT_NOCHANGE => $lang->no_change,
+            \ougc\ShowInPortal\Core\INPUT_SHOW => $lang->ougc_showinportal_modtool_show,
+            \ougc\ShowInPortal\Core\INPUT_HIDE => $lang->ougc_showinportal_modtool_remove,
+            \ougc\ShowInPortal\Core\INPUT_TOGGLE => $lang->toggle
         ], $mybb->get_input('showinportal', \MyBB::INPUT_INT), ['id' => 'showinportal']),
         'showinportal'
     );

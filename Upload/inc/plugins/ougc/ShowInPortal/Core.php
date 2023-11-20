@@ -34,7 +34,9 @@ const STATUS_SHOW = 1;
 
 const STATUS_HIDE = 0;
 
-const INPUT_SHOW = 2;
+const INPUT_NOCHANGE = 0;
+
+const INPUT_SHOW = 1;
 
 const INPUT_HIDE = 2;
 
