@@ -1,0 +1,30 @@
+{
+  "allowedGroups": {
+    "optionscode": "groupselect",
+    "value": "3,4,6"
+  },
+  "enabledForums": {
+    "optionscode": "forumselect",
+    "value": -1
+  },
+  "enableReadMore": {
+    "optionscode": "yesno",
+    "value": 1
+  },
+  "readMoreTag": {
+    "optionscode": "text",
+    "value": "[!--more--]"
+  },
+  "notifyByPM": {
+    "optionscode": "yesno",
+    "value": 0
+  },
+  "notifyByAlert": {
+    "optionscode": "yesno",
+    "value": 0
+  },
+  "enableForumFilter": {
+    "optionscode": "yesno",
+    "value": 0
+  }
+}
