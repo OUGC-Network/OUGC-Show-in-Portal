@@ -110,6 +110,11 @@ Follow the next steps in order to update your copy of this plugin.
 2. Follow step 1 and 2 from the [Install](#install) section.
 3. Browse to _Configuration » Plugins_ and activate this plugin by clicking _Activate_.
 
+**If you are updating to <ins>1.8.36</ins> from any previous version:**
+
+1. After following the above steps, make sure to review your settings and templates as they were updated for this
+   version.
+
 ### Template Modifications <a name = "template_modifications"></a>
 
 To display the moderation option it is required that you edit the following templates for each of
