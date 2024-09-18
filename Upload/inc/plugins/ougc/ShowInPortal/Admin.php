@@ -227,9 +227,6 @@ function pluginUninstall(): bool
     return true;
 }
 
-;
-
-
 function dbVerifyColumns(): bool
 {
     global $db;
