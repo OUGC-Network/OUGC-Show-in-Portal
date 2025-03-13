@@ -30,15 +30,18 @@ declare(strict_types=1);
 
 namespace ougc\ShowInPortal\Hooks\Forum;
 
+use MyBB;
+use PostDataHandler;
+
 use function ougc\ShowInPortal\Core\loadLanguage;
-
 use function ougc\ShowInPortal\Core\cutOffMessage;
-
 use function ougc\ShowInPortal\Core\isModerator;
-
 use function ougc\ShowInPortal\Core\getTemplate;
-
 use function ougc\ShowInPortal\Core\getSetting;
+use function ougc\ShowInPortal\Core\updateThreadStatus;
+
+use const ougc\ShowInPortal\Core\STATUS_HIDE;
+use const ougc\ShowInPortal\Core\STATUS_SHOW;
 
 function global_start()
 {
@@ -64,7 +67,7 @@ function global_start()
         $templatelist .= ',';
     }
 
-    switch (\THIS_SCRIPT) {
+    switch (THIS_SCRIPT) {
         case 'showthread.php';
             $templatelist .= 'ougcshowinportal_quickReply';
             break;
@@ -105,7 +108,7 @@ function newthread_end()
     } elseif ($plugins->current_hook === 'newthread_end') {
         global $modoptions;
 
-        $forumID = $mybb->get_input('fid', \MyBB::INPUT_INT);
+        $forumID = $mybb->get_input('fid', MyBB::INPUT_INT);
     } elseif ($plugins->current_hook === 'newreply_end') {
         global $modoptions;
 
@@ -124,7 +127,7 @@ function newthread_end()
 
     if ($plugins->current_hook == 'editpost_end' && (int)$thread['firstpost'] !== $mybb->get_input(
             'pid',
-            \MYBB::INPUT_INT
+            MYBB::INPUT_INT
         )) {
         return false;
     }
@@ -135,16 +138,16 @@ function newthread_end()
 
     loadLanguage();
 
-    $displayStatus = \ougc\ShowInPortal\Core\STATUS_HIDE; // newthread_end
+    $displayStatus = STATUS_HIDE; // newthread_end
 
-    $moderationOptions = $mybb->get_input($inputName, \MYBB::INPUT_ARRAY);
+    $moderationOptions = $mybb->get_input($inputName, MYBB::INPUT_ARRAY);
 
     if ($mybb->request_method == 'post') {
         if (
             !isset($inputName) ||
-            (isset($moderationOptions['showinportal']) && (int)$moderationOptions['showinportal'] === \ougc\ShowInPortal\Core\STATUS_SHOW)
+            (isset($moderationOptions['showinportal']) && (int)$moderationOptions['showinportal'] === STATUS_SHOW)
         ) {
-            $displayStatus = \ougc\ShowInPortal\Core\STATUS_SHOW;
+            $displayStatus = STATUS_SHOW;
         }
     } elseif ($plugins->current_hook !== 'newthread_end') {
         $displayStatus = (int)$thread['showinportal'];
@@ -233,7 +236,7 @@ function moderation_start()
                     'multiapproveposts',
                     'multiunapproveposts'
                 )
-            ) || $mybb->get_input('action', \MyBB::INPUT_INT) < 1) {
+            ) || $mybb->get_input('action', MyBB::INPUT_INT) < 1) {
             return;
         }
 
@@ -265,7 +268,7 @@ function datahandler_post_insert_thread(&$dh)
     }
 }
 
-function datahandler_post_insert_post(\PostDataHandler &$dataHandler): \PostDataHandler
+function datahandler_post_insert_post(PostDataHandler &$dataHandler): PostDataHandler
 {
     global $mybb, $plugins;
 
@@ -276,29 +279,29 @@ function datahandler_post_insert_post(\PostDataHandler &$dataHandler): \PostData
     $threadData = get_thread($dataHandler->data['tid']);
 
     if ($plugins->current_hook == 'datahandler_post_update') {
-        if (\THIS_SCRIPT === 'xmlhttp.php' || empty($dataHandler->first_post)) {
+        if (THIS_SCRIPT === 'xmlhttp.php' || empty($dataHandler->first_post)) {
             return $dataHandler;
         }
 
-        $options = $mybb->get_input('postoptions', \MYBB::INPUT_ARRAY);
+        $options = $mybb->get_input('postoptions', MYBB::INPUT_ARRAY);
     } else {
         $options = $dataHandler->data['modoptions'];
     }
 
-    $inputValue = \ougc\ShowInPortal\Core\STATUS_HIDE;
+    $inputValue = STATUS_HIDE;
 
-    if (isset($options['showinportal']) && (int)$options['showinportal'] === \ougc\ShowInPortal\Core\STATUS_SHOW) {
-        $inputValue = \ougc\ShowInPortal\Core\STATUS_SHOW;
+    if (isset($options['showinportal']) && (int)$options['showinportal'] === STATUS_SHOW) {
+        $inputValue = STATUS_SHOW;
     }
 
-    \ougc\ShowInPortal\Core\updateThreadStatus([$threadData['tid']], $inputValue);
+    updateThreadStatus([$threadData['tid']], $inputValue);
 
     return $dataHandler;
 }
 
 //datahandler_post_insert_merge
 
-function datahandler_post_update(\PostDataHandler &$dataHandler): \PostDataHandler
+function datahandler_post_update(PostDataHandler &$dataHandler): PostDataHandler
 {
     return datahandler_post_insert_post($dataHandler);
 }
@@ -327,7 +330,7 @@ function portal_start()
 {
     global $mybb;
 
-    $forumID = $mybb->get_input('forumID', \MyBB::INPUT_INT);
+    $forumID = $mybb->get_input('forumID', MyBB::INPUT_INT);
 
     if (getSetting('enableForumFilter') && $forumID) {
         control_db(

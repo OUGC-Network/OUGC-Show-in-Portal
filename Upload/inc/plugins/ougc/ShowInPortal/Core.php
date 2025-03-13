@@ -30,6 +30,18 @@ declare(strict_types=1);
 
 namespace ougc\ShowInPortal\Core;
 
+use MybbStuff_MyAlerts_AlertManager;
+use MybbStuff_MyAlerts_AlertTypeManager;
+use MybbStuff_MyAlerts_Entity_Alert;
+use PluginLibrary;
+use PMDataHandler;
+
+use function ougc\ShowInPortal\Admin\pluginInfo;
+
+use const MYBB_ROOT;
+use const OUGC_SHOWINPORTAL_ROOT;
+use const PLUGINLIBRARY;
+
 const STATUS_SHOW = 1;
 
 const STATUS_HIDE = 0;
@@ -57,7 +69,7 @@ function loadLanguage(): bool
 
 function pluginLibraryRequirements(): object
 {
-    return (object)\ougc\ShowInPortal\Admin\pluginInfo()['pl'];
+    return (object)pluginInfo()['pl'];
 }
 
 function loadPluginLibrary(): bool
@@ -66,14 +78,14 @@ function loadPluginLibrary(): bool
 
     loadLanguage();
 
-    $fileExists = file_exists(\PLUGINLIBRARY);
+    $fileExists = file_exists(PLUGINLIBRARY);
 
-    if ($fileExists && !($PL instanceof \PluginLibrary)) {
-        require_once \PLUGINLIBRARY;
+    if ($fileExists && !($PL instanceof PluginLibrary)) {
+        require_once PLUGINLIBRARY;
     }
 
     if (!$fileExists || $PL->version < pluginLibraryRequirements()->version) {
-        \flash_message(
+        flash_message(
             $lang->sprintf(
                 $lang->ougc_showinportal_pluginlibrary_required,
                 pluginLibraryRequirements()->url,
@@ -82,7 +94,7 @@ function loadPluginLibrary(): bool
             'error'
         );
 
-        \admin_redirect('index.php?module=config-plugins');
+        admin_redirect('index.php?module=config-plugins');
     }
 
     return true;
@@ -126,7 +138,7 @@ function getTemplate(string $templateName, bool $enableHTMLComments = true): str
     global $templates;
 
     if (DEBUG) {
-        $filePath = \OUGC_SHOWINPORTAL_ROOT . "/Templates/{$templateName}.html";
+        $filePath = OUGC_SHOWINPORTAL_ROOT . "/Templates/{$templateName}.html";
 
         $templateContents = file_get_contents($filePath);
 
@@ -342,9 +354,9 @@ function sendPrivateMessage(array $privateMessageData, array $userIDs): bool
         $privateMessageData['ipaddress'] = $mybb->session->packedip;
     }
 
-    require_once \MYBB_ROOT . 'inc/datahandlers/pm.php';
+    require_once MYBB_ROOT . 'inc/datahandlers/pm.php';
 
-    $pmDataHandler = new \PMDataHandler();
+    $pmDataHandler = new PMDataHandler();
 
     // Admin override
     $pmDataHandler->admin_override = true;
@@ -373,7 +385,7 @@ function sendAlert(int $newStatus, array $threadIDs)
         return false;
     }
 
-    $alertType = \MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('ougc_showinportal');
+    $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('ougc_showinportal');
 
     if (empty($alertType) || !$alertType->getEnabled()) {
         return false;
@@ -408,7 +420,7 @@ function sendAlert(int $newStatus, array $threadIDs)
             continue;
         }
 
-        $alert = new \MybbStuff_MyAlerts_Entity_Alert($userID, $alertType, $threadID);
+        $alert = new MybbStuff_MyAlerts_Entity_Alert($userID, $alertType, $threadID);
 
         $alert->setExtraDetails(
             [
@@ -416,6 +428,6 @@ function sendAlert(int $newStatus, array $threadIDs)
             ]
         );
 
-        \MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+        MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
     }
 }

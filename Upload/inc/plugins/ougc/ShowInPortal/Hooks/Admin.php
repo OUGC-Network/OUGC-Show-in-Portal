@@ -30,7 +30,14 @@ declare(strict_types=1);
 
 namespace ougc\ShowInPortal\Hooks\Admin;
 
+use MyBB;
+
 use function ougc\ShowInPortal\Core\loadLanguage;
+
+use const ougc\ShowInPortal\Core\INPUT_HIDE;
+use const ougc\ShowInPortal\Core\INPUT_NOCHANGE;
+use const ougc\ShowInPortal\Core\INPUT_SHOW;
+use const ougc\ShowInPortal\Core\INPUT_TOGGLE;
 
 function admin_config_plugins_deactivate(): bool
 {
@@ -39,7 +46,7 @@ function admin_config_plugins_deactivate(): bool
     if (
         $mybb->get_input('action') != 'deactivate' ||
         $mybb->get_input('plugin') != 'ougc_showinportal' ||
-        !$mybb->get_input('uninstall', \MyBB::INPUT_INT)
+        !$mybb->get_input('uninstall', MyBB::INPUT_INT)
     ) {
         return false;
     }
@@ -51,7 +58,7 @@ function admin_config_plugins_deactivate(): bool
     }
 
     if ($mybb->get_input('no')) {
-        \admin_redirect('index.php?module=config-plugins');
+        admin_redirect('index.php?module=config-plugins');
     }
 
     return true;
@@ -98,11 +105,11 @@ function admin_formcontainer_end()
         $lang->ougc_showinportal_modtool . ' <em>*</em>',
         '',
         $form->generate_select_box('showinportal', [
-            \ougc\ShowInPortal\Core\INPUT_NOCHANGE => $lang->no_change,
-            \ougc\ShowInPortal\Core\INPUT_SHOW => $lang->ougc_showinportal_modtool_show,
-            \ougc\ShowInPortal\Core\INPUT_HIDE => $lang->ougc_showinportal_modtool_remove,
-            \ougc\ShowInPortal\Core\INPUT_TOGGLE => $lang->toggle
-        ], $mybb->get_input('showinportal', \MyBB::INPUT_INT), ['id' => 'showinportal']),
+            INPUT_NOCHANGE => $lang->no_change,
+            INPUT_SHOW => $lang->ougc_showinportal_modtool_show,
+            INPUT_HIDE => $lang->ougc_showinportal_modtool_remove,
+            INPUT_TOGGLE => $lang->toggle
+        ], $mybb->get_input('showinportal', MyBB::INPUT_INT), ['id' => 'showinportal']),
         'showinportal'
     );
 }
@@ -115,7 +122,7 @@ function admin_config_mod_tools_add_thread_tool_commit()
     if ($mybb->request_method == 'post') {
         global $db, $thread_options, $update_tool, $new_tool;
 
-        $showInPortal = $mybb->get_input('showinportal', \MyBB::INPUT_INT);
+        $showInPortal = $mybb->get_input('showinportal', MyBB::INPUT_INT);
 
         $thread_options['showinportal'] = ($showInPortal > 3 || $showInPortal < 0 ? 0 : $showInPortal);
 

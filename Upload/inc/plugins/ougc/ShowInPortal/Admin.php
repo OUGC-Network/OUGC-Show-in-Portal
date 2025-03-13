@@ -30,6 +30,17 @@ declare(strict_types=1);
 
 namespace ougc\ShowInPortal\Admin;
 
+use DirectoryIterator;
+use MybbStuff_MyAlerts_AlertTypeManager;
+use MybbStuff_MyAlerts_Entity_AlertType;
+
+use function file_get_contents;
+use function json_decode;
+use function ougc\ShowInPortal\Core\loadLanguage;
+use function ougc\ShowInPortal\Core\loadPluginLibrary;
+
+use const OUGC_SHOWINPORTAL_ROOT;
+
 const FIELDS_DATA = [
     'threads' => [
         'showinportal' => "INT(1) NOT NULL DEFAULT '0'"
@@ -40,7 +51,7 @@ function pluginInfo(): array
 {
     global $lang;
 
-    \ougc\ShowInPortal\Core\loadLanguage();
+    loadLanguage();
 
     return [
         'name' => 'OUGC Show in Portal',
@@ -64,16 +75,16 @@ function pluginActivate(): bool
 {
     global $PL, $cache, $lang;
 
-    \ougc\ShowInPortal\Core\loadLanguage();
+    loadLanguage();
 
     $pluginInfo = pluginInfo();
 
-    \ougc\ShowInPortal\Core\loadPluginLibrary();
+    loadPluginLibrary();
 
     // Add settings group
-    $settingsContents = \file_get_contents(OUGC_SHOWINPORTAL_ROOT . '/settings.json');
+    $settingsContents = file_get_contents(OUGC_SHOWINPORTAL_ROOT . '/settings.json');
 
-    $settingsData = \json_decode($settingsContents, true);
+    $settingsData = json_decode($settingsContents, true);
 
     foreach ($settingsData as $settingKey => &$settingData) {
         if (empty($lang->{"setting_ougc_showinportal_{$settingKey}"})) {
@@ -98,8 +109,8 @@ function pluginActivate(): bool
     );
 
     // Add templates
-    $templatesDirIterator = new \DirectoryIterator(
-        \OUGC_SHOWINPORTAL_ROOT . '/Templates'
+    $templatesDirIterator = new DirectoryIterator(
+        OUGC_SHOWINPORTAL_ROOT . '/Templates'
     );
 
     $templates = [];
@@ -127,11 +138,11 @@ function pluginActivate(): bool
         global $db;
         global $alertTypeManager;
 
-        $alertTypeManager || $alertTypeManager = \MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
+        $alertTypeManager || $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
 
-        $alertTypeManager = \MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+        $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
 
-        $alertType = new \MybbStuff_MyAlerts_Entity_AlertType();
+        $alertType = new MybbStuff_MyAlerts_Entity_AlertType();
 
         $alertType->setCode('ougc_showinportal');
         $alertType->setEnabled(true);
@@ -185,7 +196,7 @@ function pluginUninstall(): bool
 {
     global $db, $PL, $cache;
 
-    \ougc\ShowInPortal\Core\loadPluginLibrary();
+    loadPluginLibrary();
 
     $PL->settings_delete('ougc_showinportal');
 
@@ -196,9 +207,9 @@ function pluginUninstall(): bool
         global $db;
         global $alertTypeManager;
 
-        $alertTypeManager || $alertTypeManager = \MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
+        $alertTypeManager || $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
 
-        $alertTypeManager = \MybbStuff_MyAlerts_AlertTypeManager::getInstance();
+        $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
 
         $alertTypeManager->deleteByCode('ougc_showinportal');
     }
@@ -226,8 +237,6 @@ function pluginUninstall(): bool
 
     return true;
 }
-
-;
 
 
 function dbVerifyColumns(): bool
