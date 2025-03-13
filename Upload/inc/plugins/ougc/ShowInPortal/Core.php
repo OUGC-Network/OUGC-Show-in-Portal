@@ -39,7 +39,7 @@ use PMDataHandler;
 use function ougc\ShowInPortal\Admin\pluginInfo;
 
 use const MYBB_ROOT;
-use const OUGC_SHOWINPORTAL_ROOT;
+use const ougc\ShowInPortal\ROOT;
 use const PLUGINLIBRARY;
 
 const STATUS_SHOW = 1;
@@ -138,7 +138,7 @@ function getTemplate(string $templateName, bool $enableHTMLComments = true): str
     global $templates;
 
     if (DEBUG) {
-        $filePath = OUGC_SHOWINPORTAL_ROOT . "/Templates/{$templateName}.html";
+        $filePath = ROOT . "/Templates/{$templateName}.html";
 
         $templateContents = file_get_contents($filePath);
 

@@ -39,7 +39,7 @@ use function json_decode;
 use function ougc\ShowInPortal\Core\loadLanguage;
 use function ougc\ShowInPortal\Core\loadPluginLibrary;
 
-use const OUGC_SHOWINPORTAL_ROOT;
+use const ougc\ShowInPortal\ROOT;
 
 const FIELDS_DATA = [
     'threads' => [
@@ -82,7 +82,7 @@ function pluginActivate(): bool
     loadPluginLibrary();
 
     // Add settings group
-    $settingsContents = file_get_contents(OUGC_SHOWINPORTAL_ROOT . '/settings.json');
+    $settingsContents = file_get_contents(ROOT . '/settings.json');
 
     $settingsData = json_decode($settingsContents, true);
 
@@ -110,7 +110,7 @@ function pluginActivate(): bool
 
     // Add templates
     $templatesDirIterator = new DirectoryIterator(
-        OUGC_SHOWINPORTAL_ROOT . '/Templates'
+        ROOT . '/Templates'
     );
 
     $templates = [];

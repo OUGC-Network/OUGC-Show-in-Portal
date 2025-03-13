@@ -35,11 +35,13 @@ use function ougc\ShowInPortal\Admin\pluginUninstall;
 use function ougc\ShowInPortal\Core\addHooks;
 use function ougc\ShowInPortal\Core\loadLanguage;
 
+use const ougc\ShowInPortal\ROOT;
+
 if (!defined('IN_MYBB')) {
     die('This file cannot be accessed directly.');
 }
 
-const OUGC_SHOWINPORTAL_ROOT = MYBB_ROOT . 'inc/plugins/ougc/ShowInPortal';
+define('ougc\ShowInPortal\ROOT', MYBB_ROOT . 'inc/plugins/ougc/ShowInPortal');
 
 // Plugin Settings
 define('ougc\ShowInPortal\Core\SETTINGS', [
@@ -51,20 +53,20 @@ if (!defined('PLUGINLIBRARY')) {
     define('PLUGINLIBRARY', MYBB_ROOT . 'inc/plugins/pluginlibrary.php');
 }
 
-require_once OUGC_SHOWINPORTAL_ROOT . '/Core.php';
+require_once ROOT . '/Core.php';
 
 if (defined('IN_ADMINCP')) {
-    require_once OUGC_SHOWINPORTAL_ROOT . '/Admin.php';
-    require_once OUGC_SHOWINPORTAL_ROOT . '/Hooks/Admin.php';
+    require_once ROOT . '/Admin.php';
+    require_once ROOT . '/Hooks/Admin.php';
 
     addHooks('ougc\ShowInPortal\Hooks\Admin');
 } else {
-    require_once OUGC_SHOWINPORTAL_ROOT . '/Hooks/Forum.php';
+    require_once ROOT . '/Hooks/Forum.php';
 
     addHooks('ougc\ShowInPortal\Hooks\Forum');
 }
 
-require_once OUGC_SHOWINPORTAL_ROOT . '/Core.php';
+require_once ROOT . '/Core.php';
 
 // Plugin API
 function ougc_showinportal_info(): array
