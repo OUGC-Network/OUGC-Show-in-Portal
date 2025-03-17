@@ -34,8 +34,6 @@ use DirectoryIterator;
 use MybbStuff_MyAlerts_AlertTypeManager;
 use MybbStuff_MyAlerts_Entity_AlertType;
 
-use function file_get_contents;
-use function json_decode;
 use function ougc\ShowInPortal\Core\loadLanguage;
 use function ougc\ShowInPortal\Core\loadPluginLibrary;
 
@@ -63,7 +61,7 @@ function pluginInfo(): array
         'versioncode' => 1836,
         'compatibility' => '18*',
         'codename' => 'ougc_showinportal',
-        'myalerts' => '2.0.4',
+        'myalerts' => '2.1.0',
         'pl' => [
             'version' => 13,
             'url' => 'https://community.mybb.com/mods.php?action=view&pid=573'
@@ -133,7 +131,6 @@ function pluginActivate(): bool
         $PL->templates('ougcshowinportal', 'OUGC Show In Portal', $templates);
     }
 
-    // MyAlerts
     if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
         global $db;
         global $alertTypeManager;
@@ -202,7 +199,6 @@ function pluginUninstall(): bool
 
     $PL->templates_delete('ougcshowinportal');
 
-    // MyAlerts
     if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
         global $db;
         global $alertTypeManager;

@@ -31,33 +31,25 @@ declare(strict_types=1);
 namespace ougc\ShowInPortal\Hooks\Forum;
 
 use MyBB;
+use MybbStuff_MyAlerts_AlertFormatterManager;
+use ougc\ShowInPortal\Core\MyAlertsFormatter;
 use PostDataHandler;
 
+use function ougc\ShowInPortal\Core\control_db;
 use function ougc\ShowInPortal\Core\loadLanguage;
 use function ougc\ShowInPortal\Core\cutOffMessage;
 use function ougc\ShowInPortal\Core\isModerator;
 use function ougc\ShowInPortal\Core\getTemplate;
 use function ougc\ShowInPortal\Core\getSetting;
+use function ougc\ShowInPortal\Core\myAlertsInitiate;
 use function ougc\ShowInPortal\Core\updateThreadStatus;
 
 use const ougc\ShowInPortal\Core\STATUS_HIDE;
 use const ougc\ShowInPortal\Core\STATUS_SHOW;
 
-function global_start()
+function global_start05()
 {
-    if (class_exists('MybbStuff_MyAlerts_AlertFormatterManager')) {
-        global $mybb, $lang;
-
-        loadLanguage();
-
-        $formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::getInstance();
-
-        $formatterManager || $formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::createInstance($mybb, $lang);
-
-        $formatterManager->registerFormatter(
-            new OUGC_ShowInPortal_MyAlerts_Formatter($mybb, $lang, 'ougc_showinportal')
-        );
-    }
+    myAlertsInitiate();
 
     global $templatelist;
 
@@ -419,7 +411,34 @@ function parse_message_start(&$message)
 
 function xmlhttp_update_post()
 {
+    myAlertsInitiate();
+
     global $post;
 
     postbit($post);
+}
+
+function myalerts_register_client_alert_formatters(): bool
+{
+    if (
+        class_exists('MybbStuff_MyAlerts_Formatter_AbstractFormatter') &&
+        class_exists('MybbStuff_MyAlerts_AlertFormatterManager') &&
+        class_exists('ougc\Awards\Core\MyAlertsFormatter')
+    ) {
+        global $mybb, $lang;
+
+        $formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::getInstance();
+
+        if (!$formatterManager) {
+            $formatterManager = MybbStuff_MyAlerts_AlertFormatterManager::createInstance($mybb, $lang);
+        }
+
+        if ($formatterManager) {
+            $formatterManager->registerFormatter(
+                new MyAlertsFormatter($mybb, $lang, 'ougc_showinportal')
+            );
+        }
+    }
+
+    return true;
 }
